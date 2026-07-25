@@ -1,0 +1,26 @@
+SUPAVICE PHARMACY — FIRST RUN
+=============================
+
+Archive tools often skip files beginning with a dot, so the .env file
+may not have extracted. If "npm run check" says no .env was found:
+
+  1. Rename  env.local.txt  to  .env
+     mac/linux:  mv env.local.txt .env
+     windows:    ren env.local.txt .env
+
+  2. Verify it exists and is named exactly ".env" (not ".env.txt"):
+     mac/linux:  ls -la
+     windows:    dir /a
+
+Then:
+
+  npm install
+  npm run check     # reports what is connected and what is missing
+  npm run dev       # http://localhost:5173
+
+To load the 930 products into Supabase (needs your SECRET key,
+Settings -> API Keys -> secret):
+
+  SUPABASE_SERVICE_KEY=sb_secret_xxxxx npm run seed
+
+Full walkthrough: SUPABASE_SETUP.md

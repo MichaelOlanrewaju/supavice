@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper font-body text-ink antialiased;
+    font-size: 15px;
+    line-height: 1.6;
+    font-feature-settings: 'ss01', 'cv01';
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Clash Display is a display face — it needs optical tightening that the
+     browser will not apply on its own. */
+  h1, h2, h3 {
+    @apply font-display;
+    font-variant-ligatures: common-ligatures;
+  }
+
+  /* Prices, SKUs and metadata use tabular figures so columns line up. */
+  .tnum,
+  time,
+  [data-price] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2.5px solid #0077a3;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: rgba(0, 204, 255, 0.28);
+  }
+
+  /* Softer, brand-tinted scrollbar on desktop */
+  @media (min-width: 1024px) {
+    ::-webkit-scrollbar {
+      width: 11px;
+      height: 11px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #eef3f8;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c2d2e0;
+      border-radius: 99px;
+      border: 3px solid #eef3f8;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #0077a3;
+    }
+  }
+}
+
+@layer components {
+  /* ---------- eyebrow ---------- */
+  .eyebrow {
+    @apply flex items-center gap-2.5 font-mono text-[10.5px] font-medium uppercase text-brand-700;
+    letter-spacing: 0.15em;
+  }
+  .eyebrow::before {
+    content: '';
+    @apply h-px w-6 bg-brand;
+  }
+  .eyebrow-accent {
+    @apply text-accent;
+  }
+  .eyebrow-accent::before {
+    @apply bg-accent;
+  }
+  .eyebrow-rx {
+    @apply text-rx-600;
+  }
+  .eyebrow-rx::before {
+    @apply bg-rx;
+  }
+
+  /* ---------- buttons ---------- */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2.5 rounded-sm bg-brand-700 px-7 py-3.5
+           text-[14.5px] font-bold text-white shadow-press transition-all duration-150;
+  }
+  .btn-primary:hover:not(:disabled) {
+    @apply shadow-press-sm;
+    transform: translateY(1.5px);
+  }
+  .btn-primary:disabled {
+    @apply cursor-default opacity-40 shadow-none;
+  }
+
+  .btn-rx {
+    @apply inline-flex items-center justify-center gap-2.5 rounded-sm bg-rx-600 px-7 py-3.5
+           text-[14.5px] font-bold text-white shadow-press-rx transition-all duration-150;
+  }
+  .btn-rx:hover {
+    @apply shadow-press-rx-sm;
+    transform: translateY(1.5px);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2.5 rounded-sm border-[1.5px] border-line
+           bg-white px-6 py-3.5 text-[14.5px] font-bold transition-colors duration-200;
+  }
+  .btn-ghost:hover {
+    @apply border-brand-700 text-brand-700;
+  }
+
+  /* ---------- nav ---------- */
+  .nav-link {
+    @apply relative whitespace-nowrap px-3.5 py-3.5 text-[13.5px] font-medium text-ink-soft
+           transition-colors duration-200;
+  }
+  .nav-link:hover,
+  .nav-link.is-active {
+    @apply text-brand-700;
+  }
+  .nav-link::after {
+    content: '';
+    @apply absolute bottom-0 left-3.5 right-3.5 h-[2.5px] bg-brand;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .nav-link:hover::after,
+  .nav-link.is-active::after {
+    transform: scaleX(1);
+  }
+
+  /* ---------- utility ---------- */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dashed-top {
+    border-top: 1px dashed #e3eaf2;
+  }
+
+  .live-dot {
+    @apply h-[7px] w-[7px] rounded-full bg-[#22C55E];
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+  }
+
+  .headline-mark {
+    @apply relative whitespace-nowrap text-brand;
+  }
+
+  .dot-btn {
+    @apply h-1.5 rounded-full transition-all duration-300;
+  }
+
+  /* ---------- FAQ ---------- */
+  .faq-item {
+    border-bottom: 1px solid #e3eaf2;
+  }
+  .faq-q {
+    @apply flex w-full items-center justify-between gap-5 py-5 text-left text-[16px]
+           font-semibold tracking-[-.01em] transition-colors duration-200;
+  }
+  .faq-q:hover {
+    @apply text-brand-700;
+  }
+  .faq-sign {
+    @apply shrink-0 font-mono text-[20px] font-normal text-brand-700 transition-transform duration-300;
+  }
+
+  /* ---------- hairline divider that fades at both ends ---------- */
+  .rule-fade {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e3eaf2 15%, #e3eaf2 85%, transparent);
+  }
+}
+
+@keyframes slideProgress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
