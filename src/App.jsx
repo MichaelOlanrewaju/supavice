@@ -3,10 +3,12 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import MobileTabBar from './components/MobileTabBar'
+import WhatsAppButton from './components/WhatsAppButton'
 import Home from './pages/Home'
 import Product from './pages/Product'
 import Checkout from './pages/Checkout'
 import Contact from './pages/Contact'
+import Category from './pages/Category'
 import BestValue from './pages/BestValue'
 import NewArrivals from './pages/NewArrivals'
 import TrackOrder from './pages/TrackOrder'
@@ -62,6 +64,7 @@ export default function App() {
           <Route path="/product/:id" element={<Product />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/category/:slug" element={<Category />} />
           <Route path="/best-value" element={<BestValue />} />
           <Route path="/new-arrivals" element={<NewArrivals />} />
           <Route path="/track-order" element={<TrackOrder />} />
@@ -82,6 +85,7 @@ export default function App() {
       </main>
       <Footer />
       <MobileTabBar />
+      <WhatsAppButton />
     </div>
   )
 }

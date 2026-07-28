@@ -41,11 +41,11 @@ export default function Footer() {
               >
                 13 Baale Animashaun Rd, Alakuko, Lagos 101233
               </a>
-              <a href="tel:+2347033137748" className="hover:text-white hover:underline">
-                +234 703 313 7748
+              <a href="tel:+2348138112519" className="hover:text-white hover:underline">
+                +234 813 811 2519
               </a>
               <a
-                href="https://wa.me/2347033137748"
+                href="https://wa.me/2348138112519"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-white hover:underline"

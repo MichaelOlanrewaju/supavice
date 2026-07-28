@@ -287,8 +287,8 @@ export default function Home() {
             </h2>
             <p className="max-w-[38ch] text-[15px] text-ink-soft">
               Still stuck? Call{' '}
-              <a href="tel:+2347033137748" className="font-semibold text-brand-700 hover:underline">
-                +234 703 313 7748
+              <a href="tel:+2348138112519" className="font-semibold text-brand-700 hover:underline">
+                +234 813 811 2519
               </a>{' '}
               and a person picks up.
             </p>

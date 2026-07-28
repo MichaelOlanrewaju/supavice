@@ -5,9 +5,9 @@ import { Check, Arrow, Pin, Chat } from '../components/Icons'
 const STORE_ADDRESS = '13 Baale Animashaun Rd, Alakuko, Lagos 101233'
 const MAPS_URL =
   'https://maps.google.com/maps?vet=10CAAQoqAOahcKEwiYppSVrPWVAxUAAAAAHQAAAAAQEA..i&pvq=Cg0vZy8xMXl6OG1iamNxIhcKEXN1cGF2aWNlIHBoYXJtYWN5EAIYAw&lqi=ChFzdXBhdmljZSBwaGFybWFjeUj2gtWJ-b2AgAhaIxAAEAEYABgBIhFzdXBhdmljZSBwaGFybWFjeSoGCAIQABABkgEIcGhhcm1hY3k&fvr=1&cs=0&um=1&ie=UTF-8&fb=1&gl=ng&sa=X&ftid=0x103b97285a548eef:0x595158c21e2a5c5a'
-const PHONE_DISPLAY = '+234 703 313 7748'
-const PHONE_TEL = 'tel:+2347033137748'
-const WHATSAPP = 'https://wa.me/2347033137748'
+const PHONE_DISPLAY = '+234 813 811 2519'
+const PHONE_TEL = 'tel:+2348138112519'
+const WHATSAPP = 'https://wa.me/2348138112519'
 
 const storeImages = [
   'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnJHanc5wxvBdqh1g9YYy-SsWHxbzpvHmyyFyPraIpsrvF1EUVcT6qsmvCbqkrsxnVobwrFLq_IJ-kJmAlmdkEKKQ_JwqApkwgcEgyY9aGQ-02XFvbj6eZ84OTvnU_moMHSCEZG3PRf8ZiV=w229-h191-n-k-no-nu',

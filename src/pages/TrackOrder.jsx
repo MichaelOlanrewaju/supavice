@@ -99,8 +99,8 @@ export default function TrackOrder() {
           {state === 'error' && (
             <p className="rounded-sm border border-rx/20 bg-rx-wash px-4 py-3 text-[13px] text-rx-700">
               Something went wrong on our end. Try again, or call{' '}
-              <a href="tel:+2347033137748" className="font-semibold hover:underline">
-                +234 703 313 7748
+              <a href="tel:+2348138112519" className="font-semibold hover:underline">
+                +234 813 811 2519
               </a>
               .
             </p>

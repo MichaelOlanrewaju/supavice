@@ -1,7 +1,8 @@
+import { Link } from 'react-router-dom'
+
 /**
- * Full category grid — every category shown evenly, no single tile singled
- * out as "featured." Purely visual: with no filterable catalogue page,
- * these show what the store carries rather than link anywhere.
+ * Full category grid — every category shown evenly. Each tile links to its
+ * own listing page at /category/:slug.
  */
 export default function CategoryMosaic({ eyebrow, title, sub, categories = [] }) {
   if (!categories.length) return null
@@ -16,9 +17,10 @@ export default function CategoryMosaic({ eyebrow, title, sub, categories = [] })
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {categories.map((c) => (
-          <div
+          <Link
             key={c.slug}
-            className="flex flex-col overflow-hidden rounded-md border border-line bg-white"
+            to={`/category/${c.slug}`}
+            className="group flex flex-col overflow-hidden rounded-md border border-line bg-white transition-all duration-300 ease-smooth hover:-translate-y-0.5 hover:border-brand/60 hover:shadow-card"
           >
             <div className="relative aspect-[5/4] overflow-hidden bg-paper">
               {c.image && (
@@ -26,7 +28,7 @@ export default function CategoryMosaic({ eyebrow, title, sub, categories = [] })
                   src={c.image}
                   alt=""
                   loading="lazy"
-                  className="absolute inset-0 h-full w-full object-contain p-3.5"
+                  className="absolute inset-0 h-full w-full object-contain p-3.5 transition-transform duration-500 ease-smooth group-hover:scale-[1.08]"
                   onError={(e) => (e.currentTarget.style.opacity = 0)}
                 />
               )}
@@ -36,7 +38,7 @@ export default function CategoryMosaic({ eyebrow, title, sub, categories = [] })
                 {c.name}
               </b>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>

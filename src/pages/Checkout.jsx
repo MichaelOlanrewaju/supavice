@@ -8,6 +8,25 @@ import { supabase } from '../lib/supabase'
 
 const steps = ['Delivery', 'Payment', 'Review']
 
+/* Polls for window.PaystackPop rather than assuming it's missing the
+   instant someone clicks — the script loads from js.paystack.co and can
+   still be in flight, particularly on a slow connection. */
+function waitForPaystack(timeoutMs) {
+  return new Promise((resolve) => {
+    if (typeof window.PaystackPop !== 'undefined') return resolve(true)
+    const start = Date.now()
+    const t = setInterval(() => {
+      if (typeof window.PaystackPop !== 'undefined') {
+        clearInterval(t)
+        resolve(true)
+      } else if (Date.now() - start > timeoutMs) {
+        clearInterval(t)
+        resolve(false)
+      }
+    }, 100)
+  })
+}
+
 /* All three channels below run through Paystack — no separate cash or
    pay-on-delivery option. Paystack's own checkout lets the customer pick
    card, transfer, or USSD at the point of payment. */
@@ -185,21 +204,31 @@ export default function Checkout() {
       return
     }
 
-    /* Order exists in the database as unpaid at this point. For pickup with
-       no payment yet, or if Paystack is not configured, finish here — the
-       order is real, just not marked paid. Everything below only runs for
-       online payment. */
+    /* Order exists in the database as unpaid at this point. Pickup with no
+       online payment, or Paystack genuinely not configured, finish here —
+       the order is real, just not marked paid. */
     const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY
-    if (!paystackKey || typeof window.PaystackPop === 'undefined') {
+    if (!paystackKey) {
       setSaving(false)
       setSaveError(
-        paystackKey
-          ? ''
-          : 'Payment is not fully set up yet — your order was saved, but nothing has been charged. We will contact you to arrange payment.'
+        'Payment is not fully set up yet — your order was saved, but nothing has been charged. We will contact you to arrange payment.'
       )
       setDone(true)
       clear()
       window.scrollTo({ top: 0 })
+      return
+    }
+
+    /* Paystack's script loads from an external URL and can still be loading
+       when someone clicks Place order, especially on a slower connection.
+       Wait briefly for it rather than assuming it's missing and silently
+       skipping payment. */
+    const paystackReady = await waitForPaystack(4000)
+    if (!paystackReady) {
+      setSaving(false)
+      setSaveError(
+        'The payment window could not load. Check your connection and try again — your order is saved, nothing has been charged yet.'
+      )
       return
     }
 
