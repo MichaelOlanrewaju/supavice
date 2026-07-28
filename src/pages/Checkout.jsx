@@ -8,11 +8,13 @@ import { supabase } from '../lib/supabase'
 
 const steps = ['Delivery', 'Payment', 'Review']
 
+/* All three channels below run through Paystack — no separate cash or
+   pay-on-delivery option. Paystack's own checkout lets the customer pick
+   card, transfer, or USSD at the point of payment. */
 const payMethods = [
-  { id: 'card', label: 'Card', note: 'Visa, Mastercard, Verve' },
-  { id: 'transfer', label: 'Bank transfer', note: 'Account details shown next' },
-  { id: 'ussd', label: 'USSD', note: 'Dial a code from your phone' },
-  { id: 'cod', label: 'Cash on delivery', note: 'Lagos only, cash or POS' },
+  { id: 'card', label: 'Card', note: 'Visa, Mastercard, Verve — via Paystack' },
+  { id: 'transfer', label: 'Bank transfer', note: 'Instant transfer — via Paystack' },
+  { id: 'ussd', label: 'USSD', note: 'Dial a code from your phone — via Paystack' },
 ]
 
 export default function Checkout() {
@@ -59,7 +61,7 @@ export default function Checkout() {
       <div className="mx-auto max-w-[1280px] px-6 py-24 text-center">
         <h1 className="font-display text-3xl font-semibold mb-3">Your cart is empty</h1>
         <p className="text-ink-soft mb-6">Add something before checking out.</p>
-        <Link to="/shop" className="btn-primary">
+        <Link to="/" className="btn-primary">
           Go to the shop
           <Arrow className="w-[17px] h-[17px]" />
         </Link>
@@ -89,7 +91,7 @@ export default function Checkout() {
             <dl className="border border-line rounded-md overflow-hidden">
               {[
                 ['Delivering to', form.name || 'You'],
-                ['Address', form.address ? `${form.address}, ${form.area}` : 'Store collection'],
+                ['Address', form.method === 'pickup' ? '13 Baale Animashaun Rd, Alakuko, Lagos' : `${form.address}, ${form.area}`],
                 ['Payment', payMethods.find((m) => m.id === form.pay)?.label],
                 ['Order total', formatNaira(subtotal)],
               ].map(([k, v], idx) => (
@@ -106,7 +108,7 @@ export default function Checkout() {
             </dl>
 
             <div className="flex gap-3 mt-6 flex-wrap">
-              <Link to="/shop" className="btn-primary flex-1 justify-center">
+              <Link to="/" className="btn-primary flex-1 justify-center">
                 Keep shopping
               </Link>
               <Link to="/" className="btn-ghost flex-1 justify-center">
@@ -127,62 +129,127 @@ export default function Checkout() {
   const placeOrder = async () => {
     setSaveError('')
 
-    /* Persist the order when Supabase is configured. If it is not, the flow
-       still completes so the storefront is usable without a backend. */
-    if (supabase) {
-      setSaving(true)
-      try {
-        const { data: noRow } = await supabase.rpc('next_order_no')
-        const orderNo = noRow || orderNoFallback
-
-        const { data: order, error } = await supabase
-          .from('orders')
-          .insert({
-            order_no: orderNo,
-            user_id: user?.id ?? null,
-            email: form.email,
-            full_name: form.name,
-            phone: form.phone,
-            method: form.method,
-            address: form.method === 'pickup' ? null : form.address,
-            area: form.area,
-            note: form.note || null,
-            payment: form.pay,
-            subtotal,
-            has_pom: hasPom,
-          })
-          .select('id, order_no')
-          .single()
-
-        if (error) throw error
-
-        const lines = items.map((i) => ({
-          order_id: order.id,
-          product_id: i.id,
-          name: i.name,
-          brand: i.brand,
-          image: i.image,
-          price: i.price,
-          qty: i.qty,
-          pom: i.pom,
-        }))
-        const { error: itemErr } = await supabase.from('order_items').insert(lines)
-        if (itemErr) throw itemErr
-
-        setPlacedNo(order.order_no)
-      } catch (e) {
-        setSaving(false)
-        setSaveError(
-          e.message || 'We could not save your order. Please try again or call us.'
-        )
-        return
-      }
-      setSaving(false)
+    /* Without Supabase configured, the flow still completes so the
+       storefront is usable during development, but nothing is charged. */
+    if (!supabase) {
+      setDone(true)
+      clear()
+      window.scrollTo({ top: 0 })
+      return
     }
 
-    setDone(true)
-    clear()
-    window.scrollTo({ top: 0 })
+    setSaving(true)
+    let orderNo
+    try {
+      const { data: noRow } = await supabase.rpc('next_order_no')
+      orderNo = noRow || orderNoFallback
+
+      const { data: order, error } = await supabase
+        .from('orders')
+        .insert({
+          order_no: orderNo,
+          user_id: user?.id ?? null,
+          email: form.email,
+          full_name: form.name,
+          phone: form.phone,
+          method: form.method,
+          address: form.method === 'pickup' ? null : form.address,
+          area: form.method === 'pickup' ? 'Alakuko' : form.area,
+          note: form.note || null,
+          payment: form.pay,
+          subtotal,
+          has_pom: hasPom,
+        })
+        .select('id, order_no')
+        .single()
+
+      if (error) throw error
+
+      const lines = items.map((i) => ({
+        order_id: order.id,
+        product_id: i.id,
+        name: i.name,
+        brand: i.brand,
+        image: i.image,
+        price: i.price,
+        qty: i.qty,
+        pom: i.pom,
+      }))
+      const { error: itemErr } = await supabase.from('order_items').insert(lines)
+      if (itemErr) throw itemErr
+
+      setPlacedNo(order.order_no)
+    } catch (e) {
+      setSaving(false)
+      setSaveError(e.message || 'We could not save your order. Please try again or call us.')
+      return
+    }
+
+    /* Order exists in the database as unpaid at this point. For pickup with
+       no payment yet, or if Paystack is not configured, finish here — the
+       order is real, just not marked paid. Everything below only runs for
+       online payment. */
+    const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY
+    if (!paystackKey || typeof window.PaystackPop === 'undefined') {
+      setSaving(false)
+      setSaveError(
+        paystackKey
+          ? ''
+          : 'Payment is not fully set up yet — your order was saved, but nothing has been charged. We will contact you to arrange payment.'
+      )
+      setDone(true)
+      clear()
+      window.scrollTo({ top: 0 })
+      return
+    }
+
+    const handler = window.PaystackPop.setup({
+      key: paystackKey,
+      email: form.email,
+      amount: subtotal * 100, // Paystack expects kobo
+      ref: orderNo + '-' + Date.now(),
+      currency: 'NGN',
+      channels:
+        form.pay === 'card' ? ['card'] : form.pay === 'transfer' ? ['bank_transfer'] : ['ussd'],
+      callback: (response) => {
+        // Runs after Paystack reports success client-side. This alone is
+        // never trusted for something involving money — verifyPayment()
+        // re-checks the transaction on the server before marking it paid.
+        verifyPayment(response.reference, orderNo)
+      },
+      onClose: () => {
+        setSaving(false)
+        setSaveError(
+          'Payment was not completed. Your order is saved as unpaid — you can try again, or we can arrange payment another way. Order ' +
+            orderNo +
+            '.'
+        )
+      },
+    })
+    handler.openIframe()
+  }
+
+  const verifyPayment = async (reference, orderNo) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-paystack', {
+        body: { reference, orderNo },
+      })
+      if (error || data?.error) {
+        throw new Error(data?.error || error.message)
+      }
+      setSaving(false)
+      setDone(true)
+      clear()
+      window.scrollTo({ top: 0 })
+    } catch (e) {
+      setSaving(false)
+      setSaveError(
+        'Payment went through but we could not confirm it automatically. Your order (' +
+          orderNo +
+          ') is saved — call us and we will sort it out. ' +
+          (e.message || '')
+      )
+    }
   }
 
   return (
@@ -299,20 +366,20 @@ export default function Checkout() {
                       </select>
                     </>
                   ) : (
-                    <select
-                      value={form.area}
-                      onChange={(e) => set('area', e.target.value)}
-                      className="bg-paper border-[1.5px] border-line rounded-sm px-4 py-3 text-sm outline-none focus:border-brand-700"
-                    >
-                      <option value="">Choose a branch</option>
-                      {['Ikorodu Garage', 'Lekki Phase 1', 'Victoria Island', 'Ikeja GRA', 'Surulere', 'Yaba Market'].map(
-                        (a) => (
-                          <option key={a} value={a}>
-                            {a}
-                          </option>
-                        )
-                      )}
-                    </select>
+                    <div className="flex items-start gap-3 rounded-sm border-[1.5px] border-line bg-paper px-4 py-3.5">
+                      <Pin className="mt-0.5 h-4 w-4 shrink-0 text-brand-700" />
+                      <div className="text-sm">
+                        <b className="block font-semibold">Collect from our store</b>
+                        <a
+                          href="https://maps.google.com/maps?vet=10CAAQoqAOahcKEwiYppSVrPWVAxUAAAAAHQAAAAAQEA..i&pvq=Cg0vZy8xMXl6OG1iamNxIhcKEXN1cGF2aWNlIHBoYXJtYWN5EAIYAw&lqi=ChFzdXBhdmljZSBwaGFybWFjeUj2gtWJ-b2AgAhaIxAAEAEYABgBIhFzdXBhdmljZSBwaGFybWFjeSoGCAIQABABkgEIcGhhcm1hY3k&fvr=1&cs=0&um=1&ie=UTF-8&fb=1&gl=ng&sa=X&ftid=0x103b97285a548eef:0x595158c21e2a5c5a"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-ink-soft hover:text-brand-700 hover:underline"
+                        >
+                          13 Baale Animashaun Rd, Alakuko, Lagos 101233
+                        </a>
+                      </div>
+                    </div>
                   )}
 
                   <textarea
@@ -360,7 +427,6 @@ export default function Checkout() {
                 </h2>
                 <div className="grid gap-3">
                   {payMethods
-                    .filter((m) => m.id !== 'cod' || form.method === 'delivery')
                     .map((m) => (
                       <button
                         key={m.id}
@@ -384,30 +450,11 @@ export default function Checkout() {
                     ))}
                 </div>
 
-                {form.pay === 'card' && (
-                  <div className="grid gap-3 mt-5 pt-5 border-t border-line">
-                    <input
-                      placeholder="Card number"
-                      inputMode="numeric"
-                      className="bg-paper border-[1.5px] border-line rounded-sm px-4 py-3 text-sm outline-none focus:border-brand-700"
-                    />
-                    <div className="grid grid-cols-2 gap-3">
-                      <input
-                        placeholder="MM / YY"
-                        className="bg-paper border-[1.5px] border-line rounded-sm px-4 py-3 text-sm outline-none focus:border-brand-700"
-                      />
-                      <input
-                        placeholder="CVV"
-                        inputMode="numeric"
-                        className="bg-paper border-[1.5px] border-line rounded-sm px-4 py-3 text-sm outline-none focus:border-brand-700"
-                      />
-                    </div>
-                    <p className="flex items-center gap-2 text-[12.5px] text-ink-soft">
-                      <Lock className="w-3.5 h-3.5" />
-                      This is a demo. Do not enter a real card number.
-                    </p>
-                  </div>
-                )}
+                <p className="mt-5 flex items-center gap-2 border-t border-line pt-5 text-[12.5px] text-ink-soft">
+                  <Lock className="h-3.5 w-3.5" />
+                  You'll enter your card, transfer or USSD details on Paystack's secure payment
+                  screen after you place the order — nothing is collected here.
+                </p>
               </>
             )}
 
@@ -450,7 +497,7 @@ export default function Checkout() {
                     ['Phone', form.phone],
                     [
                       form.method === 'pickup' ? 'Collect from' : 'Deliver to',
-                      form.method === 'pickup' ? form.area : `${form.address}, ${form.area}`,
+                      form.method === 'pickup' ? '13 Baale Animashaun Rd, Alakuko, Lagos' : `${form.address}, ${form.area}`,
                     ],
                     ['Payment', payMethods.find((m) => m.id === form.pay)?.label],
                   ].map(([k, v]) => (

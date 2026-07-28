@@ -6,6 +6,12 @@
   html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    width: 100%;
   }
 
   body {
@@ -68,8 +74,8 @@
 @layer components {
   /* ---------- eyebrow ---------- */
   .eyebrow {
-    @apply flex items-center gap-2.5 font-mono text-[10.5px] font-medium uppercase text-brand-700;
-    letter-spacing: 0.15em;
+    @apply flex items-center gap-2.5 text-[13px] font-semibold uppercase text-brand-700;
+    letter-spacing: 0.04em;
   }
   .eyebrow::before {
     content: '';

@@ -118,7 +118,7 @@ export default function Account() {
                 <p className="mx-auto mt-2 max-w-[38ch] text-sm text-ink-soft">
                   When you place an order it appears here with its status and contents.
                 </p>
-                <Link to="/shop" className="btn-primary mt-6">
+                <Link to="/" className="btn-primary mt-6">
                   Start shopping
                   <Arrow className="h-[17px] w-[17px]" />
                 </Link>
@@ -173,7 +173,7 @@ export default function Account() {
           <form onSubmit={save} className="max-w-[520px]">
             <div className="grid gap-3">
               <label className="grid gap-1.5">
-                <span className="font-mono text-[11.5px] uppercase tracking-[.12em] text-ink-soft">
+                <span className="text-[12.5px] font-semibold uppercase tracking-[.06em] text-ink-soft">
                   Full name
                 </span>
                 <input
@@ -183,7 +183,7 @@ export default function Account() {
                 />
               </label>
               <label className="grid gap-1.5">
-                <span className="font-mono text-[11.5px] uppercase tracking-[.12em] text-ink-soft">
+                <span className="text-[12.5px] font-semibold uppercase tracking-[.06em] text-ink-soft">
                   Phone
                 </span>
                 <input
@@ -193,7 +193,7 @@ export default function Account() {
                 />
               </label>
               <label className="grid gap-1.5">
-                <span className="font-mono text-[11.5px] uppercase tracking-[.12em] text-ink-soft">
+                <span className="text-[12.5px] font-semibold uppercase tracking-[.06em] text-ink-soft">
                   Delivery address
                 </span>
                 <input
@@ -203,7 +203,7 @@ export default function Account() {
                 />
               </label>
               <label className="grid gap-1.5">
-                <span className="font-mono text-[11.5px] uppercase tracking-[.12em] text-ink-soft">
+                <span className="text-[12.5px] font-semibold uppercase tracking-[.06em] text-ink-soft">
                   Area
                 </span>
                 <input

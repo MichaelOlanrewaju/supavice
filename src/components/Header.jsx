@@ -1,30 +1,23 @@
 import { useState } from 'react'
-import { NavLink, Link, useNavigate } from 'react-router-dom'
-import { Search, Heart, Bag, Menu, Close } from './Icons'
+import { NavLink, Link } from 'react-router-dom'
+import { Bag, Menu, Close } from './Icons'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { formatNaira } from '../data/catalog'
 
 const nav = [
-  { to: '/shop', label: 'Shop' },
-  { to: '/shop?filter=value', label: 'Best value' },
-  { to: '/shop?filter=new', label: 'New arrivals' },
-  { to: '/about', label: 'About' },
+  { to: '/', label: 'Home' },
+  { to: '/best-value', label: 'Best value' },
+  { to: '/new-arrivals', label: 'New arrivals' },
+  { to: '/prescription-orders', label: 'Prescriptions' },
+  { to: '/delivery-returns', label: 'Delivery & returns' },
   { to: '/contact', label: 'Help' },
 ]
 
 export default function Header() {
   const [open, setOpen] = useState(false)
-  const [q, setQ] = useState('')
-  const { count, total, saved } = useCart()
+  const { count, total } = useCart()
   const { user, profile, isAdmin } = useAuth()
-  const navigate = useNavigate()
-
-  const submit = (e) => {
-    e.preventDefault()
-    navigate(q.trim() ? `/shop?q=${encodeURIComponent(q.trim())}` : '/shop')
-    setOpen(false)
-  }
 
   return (
     <>
@@ -34,10 +27,7 @@ export default function Header() {
             Same-day delivery across Lagos — <b className="font-semibold text-white">order before 16:00</b>
           </p>
           <div className="hidden sm:flex gap-5">
-            <Link to="/shop" className="hover:text-white hover:underline">
-              Find a store
-            </Link>
-            <Link to="/contact" className="hover:text-white hover:underline">
+            <Link to="/track-order" className="hover:text-white hover:underline">
               Track order
             </Link>
             <Link to="/contact" className="hover:text-white hover:underline">
@@ -47,7 +37,7 @@ export default function Header() {
         </div>
       </div>
 
-      <header className="sticky top-0 z-50 bg-paper border-b border-line">
+      <header className="sticky top-0 z-50 w-full border-b border-line bg-paper">
         <div className="mx-auto max-w-[1280px] px-6">
           <div className="flex items-center gap-4 lg:gap-7 py-4">
             <Link to="/" className="shrink-0" aria-label="Supavice Pharmacy — home">
@@ -61,36 +51,7 @@ export default function Header() {
               />
             </Link>
 
-            <form
-              onSubmit={submit}
-              className="hidden md:flex flex-1 items-center gap-2.5 bg-white border-[1.5px] border-line rounded-full pl-[18px] pr-1.5 py-1.5 focus-within:border-brand-700 focus-within:ring-4 focus-within:ring-brand/10 transition"
-            >
-              <Search className="w-[18px] h-[18px] text-ink-mute shrink-0" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                type="search"
-                placeholder="Search medicines, brands or conditions"
-                aria-label="Search products"
-                className="flex-1 bg-transparent outline-none text-[14.5px] min-w-0 placeholder:text-ink-mute"
-              />
-              <button
-                type="submit"
-                className="bg-brand-700 text-white rounded-full px-5 py-2.5 text-[13.5px] font-semibold hover:bg-brand-800 transition-colors"
-              >
-                Search
-              </button>
-            </form>
-
-            <div className="flex items-center gap-1 ml-auto md:ml-0">
-              <Link
-                to="/shop"
-                className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-sm text-[13.5px] font-medium hover:bg-brand-wash transition-colors"
-              >
-                <Heart className="w-[19px] h-[19px]" />
-                <span className="hidden lg:inline">Saved</span>
-                {saved > 0 && <em className="font-mono text-xs text-rx not-italic">{saved}</em>}
-              </Link>
+            <div className="flex items-center gap-1 ml-auto">
               <Link
                 to="/cart"
                 className="flex items-center gap-2 px-3.5 py-2.5 rounded-sm text-[13.5px] font-medium hover:bg-brand-wash transition-colors"
@@ -135,15 +96,12 @@ export default function Header() {
                 <NavLink
                   key={n.to}
                   to={n.to}
+                  end={n.to === '/'}
                   className={({ isActive }) => `nav-link ${isActive ? 'is-active' : ''}`}
                 >
                   {n.label}
                 </NavLink>
               ))}
-              <span className="w-px h-5 bg-line mx-2" />
-              <NavLink to="/shop?filter=value" className="nav-link !text-rx font-bold">
-                Best value
-              </NavLink>
             </div>
           </div>
         </nav>
@@ -151,23 +109,16 @@ export default function Header() {
         {open && (
           <div className="lg:hidden border-t border-line bg-white">
             <div className="mx-auto max-w-[1280px] px-6 py-4">
-              <form onSubmit={submit} className="flex items-center gap-2 mb-4">
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  type="search"
-                  placeholder="Search medicines"
-                  className="flex-1 bg-paper border-[1.5px] border-line rounded-sm px-4 py-3 text-sm outline-none focus:border-brand-700"
-                />
-                <button className="bg-brand-700 text-white px-5 py-3 rounded-sm text-sm font-semibold">
-                  Go
-                </button>
-              </form>
               <div className="grid gap-px bg-line">
-                {[...nav, { to: '/cart', label: 'Cart' }, { to: user ? '/account' : '/login', label: user ? 'My account' : 'Sign in' }].map((n) => (
+                {[
+                  ...nav,
+                  { to: '/cart', label: 'Cart' },
+                  { to: user ? '/account' : '/login', label: user ? 'My account' : 'Sign in' },
+                ].map((n) => (
                   <NavLink
                     key={n.to}
                     to={n.to}
+                    end={n.to === '/'}
                     onClick={() => setOpen(false)}
                     className={({ isActive }) =>
                       `bg-white px-4 py-3.5 text-[15px] font-medium ${isActive ? 'text-brand-700' : ''}`

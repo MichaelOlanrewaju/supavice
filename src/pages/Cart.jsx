@@ -17,11 +17,11 @@ export default function Cart() {
 Browse the shelves and add something. Same-day delivery across Lagos on orders placed before 16:00.
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
-            <Link to="/shop" className="btn-primary">
+            <Link to="/" className="btn-primary">
               Start shopping
               <Arrow className="w-[17px] h-[17px]" />
             </Link>
-            <Link to="/shop?filter=value" className="btn-ghost">
+            <Link to="/" className="btn-ghost">
               Best value picks
             </Link>
           </div>
@@ -113,7 +113,7 @@ Browse the shelves and add something. Same-day delivery across Lagos on orders p
             </div>
 
             <div className="flex justify-between items-center mt-4 flex-wrap gap-3">
-              <Link to="/shop" className="text-sm font-semibold text-brand-700 hover:underline">
+              <Link to="/" className="text-sm font-semibold text-brand-700 hover:underline">
                 ← Keep shopping
               </Link>
               <button

@@ -4,11 +4,14 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import MobileTabBar from './components/MobileTabBar'
 import Home from './pages/Home'
-import Shop from './pages/Shop'
 import Product from './pages/Product'
 import Checkout from './pages/Checkout'
-import About from './pages/About'
 import Contact from './pages/Contact'
+import BestValue from './pages/BestValue'
+import NewArrivals from './pages/NewArrivals'
+import TrackOrder from './pages/TrackOrder'
+import DeliveryReturns from './pages/DeliveryReturns'
+import PrescriptionOrders from './pages/PrescriptionOrders'
 import Cart from './pages/Cart'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
@@ -50,17 +53,20 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen w-full flex-col">
       <ScrollToTop />
       <Header />
       <main className="flex-1 pb-16 lg:pb-0">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<Product />} />
           <Route path="/checkout" element={<Checkout />} />
-          <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/best-value" element={<BestValue />} />
+          <Route path="/new-arrivals" element={<NewArrivals />} />
+          <Route path="/track-order" element={<TrackOrder />} />
+          <Route path="/delivery-returns" element={<DeliveryReturns />} />
+          <Route path="/prescription-orders" element={<PrescriptionOrders />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login />} />
           <Route

@@ -18,7 +18,7 @@ export default function NotFound() {
           Back to the front
           <Arrow className="w-[17px] h-[17px]" />
         </Link>
-        <Link to="/shop" className="btn-ghost">
+        <Link to="/" className="btn-ghost">
           Browse products
         </Link>
       </div>

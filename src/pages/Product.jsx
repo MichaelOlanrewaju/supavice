@@ -31,7 +31,7 @@ export default function Product() {
       <div className="mx-auto max-w-[1280px] px-6 py-24 text-center">
         <h1 className="font-display text-3xl font-semibold mb-3">We don't stock that</h1>
         <p className="text-ink-soft mb-6">The product may have been delisted or the link is wrong.</p>
-        <Link to="/shop" className="btn-primary">
+        <Link to="/" className="btn-primary">
           Back to the shop
         </Link>
       </div>
@@ -61,11 +61,11 @@ export default function Product() {
             Home
           </Link>
           <span>/</span>
-          <Link to="/shop" className="hover:text-brand-700">
+          <Link to="/" className="hover:text-brand-700">
             Shop
           </Link>
           <span>/</span>
-          <Link to={`/shop?cat=${p.category}`} className="hover:text-brand-700">
+          <Link to={"/"} className="hover:text-brand-700">
             {p.category}
           </Link>
         </div>
@@ -95,7 +95,7 @@ export default function Product() {
               )}
             </div>
             <div className="mt-3 flex items-center gap-2 rounded-sm border border-line bg-white px-4 py-3">
-              <span className="font-mono text-[11.5px] uppercase tracking-[.12em] text-ink-mute">
+              <span className="text-[12.5px] font-semibold uppercase tracking-[.06em] text-ink-mute">
                 SKU
               </span>
               <span className="font-mono text-[12px] text-ink-soft">{p.sku || '—'}</span>
@@ -142,7 +142,7 @@ export default function Product() {
 
             {desc.length > 0 && (
               <div className="my-6">
-                <h2 className="mb-3 font-mono text-[11.5px] uppercase tracking-[.13em] text-ink-mute">
+                <h2 className="mb-3 text-[12.5px] font-semibold uppercase tracking-[.06em] text-ink-mute">
                   About this product
                 </h2>
                 <div className="space-y-3">
@@ -259,7 +259,7 @@ export default function Product() {
                 <div>
                   <b className="text-sm font-semibold block">Collect in store</b>
                   <span className="text-[12.5px] text-ink-soft">
-                    Any of 42 branches. Held for 72 hours.
+                    Our Alakuko store. Held for 72 hours.
                   </span>
                 </div>
               </div>
@@ -289,7 +289,7 @@ export default function Product() {
             <SectionHead
               eyebrow="Same shelf"
               title="Often bought alongside"
-              linkTo={`/shop?cat=${p.category}`}
+              linkTo={"/"}
               linkLabel="See the category"
             />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

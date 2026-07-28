@@ -91,7 +91,7 @@ create table if not exists orders (
   address       text,
   area          text,
   note          text,
-  payment       text not null check (payment in ('card','transfer','ussd','cod')),
+  payment       text not null check (payment in ('card','transfer','ussd')),
   -- Delivery is quoted after the order is placed, so it is nullable and is not
   -- part of the amount charged at checkout.
   subtotal      integer not null check (subtotal >= 0),

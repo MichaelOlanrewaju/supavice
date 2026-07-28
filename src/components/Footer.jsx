@@ -18,35 +18,53 @@ export default function Footer() {
       <div className="mx-auto max-w-[1280px] px-6">
         <div className="grid md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.3fr] gap-11 pb-11">
           <div>
-            <img
-              src="/brand/supavice-logo-white.png"
-              srcSet="/brand/supavice-logo-white.png 1x, /brand/supavice-logo-white@2x.png 2x"
-              alt="Supavice"
-              width="253"
-              height="36"
-              className="h-9 w-auto"
-            />
-            <p className="text-sm leading-[1.6] my-4 max-w-[36ch]">
-              A registered Nigerian community pharmacy chain. Superintendent Pharmacist: Pharm. T.
-              Bello, PCN 27/4419.
-            </p>
-            <span className="font-mono text-[11px] border border-white/20 px-3 py-1.5 rounded-sm inline-block">
-              PCN PREMISES 04/LA/2211
+            <span className="inline-block rounded-md bg-white px-4 py-2.5 shadow-xs">
+              <img
+                src="/brand/supavice-logo.png"
+                srcSet="/brand/supavice-logo.png 1x, /brand/supavice-logo@2x.png 2x"
+                alt="Supavice"
+                width="253"
+                height="36"
+                className="h-8 w-auto"
+              />
             </span>
+            <p className="text-sm leading-[1.6] my-4 max-w-[36ch]">
+              Your neighbourhood pharmacy in Alakuko, Lagos — genuine medicine, real advice, and
+              same-day delivery across the city.
+            </p>
+            <div className="grid gap-1.5 text-sm">
+              <a
+                href="https://maps.google.com/maps?vet=10CAAQoqAOahcKEwiYppSVrPWVAxUAAAAAHQAAAAAQEA..i&pvq=Cg0vZy8xMXl6OG1iamNxIhcKEXN1cGF2aWNlIHBoYXJtYWN5EAIYAw&lqi=ChFzdXBhdmljZSBwaGFybWFjeUj2gtWJ-b2AgAhaIxAAEAEYABgBIhFzdXBhdmljZSBwaGFybWFjeSoGCAIQABABkgEIcGhhcm1hY3k&fvr=1&cs=0&um=1&ie=UTF-8&fb=1&gl=ng&sa=X&ftid=0x103b97285a548eef:0x595158c21e2a5c5a"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white hover:underline"
+              >
+                13 Baale Animashaun Rd, Alakuko, Lagos 101233
+              </a>
+              <a href="tel:+2347033137748" className="hover:text-white hover:underline">
+                +234 703 313 7748
+              </a>
+              <a
+                href="https://wa.me/2347033137748"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white hover:underline"
+              >
+                WhatsApp us
+              </a>
+            </div>
           </div>
 
           <div>
             <h4 className="font-mono text-[11.5px] tracking-[.13em] uppercase text-accent mb-4 font-medium">
-              Shop
+              Company
             </h4>
             <div className="grid gap-2.5">
               {[
-                ['All products', '/shop'],
-                ['Best value', '/shop?filter=value'],
-                ['New arrivals', '/shop?filter=new'],
-                ['Supplements', '/shop?cat=supplements'],
-                ['Infections', '/shop?cat=infections'],
-                ['Mother & baby', '/shop?cat=mother-baby'],
+                ['Home', '/'],
+                ['Best value', '/best-value'],
+                ['New arrivals', '/new-arrivals'],
+                ['Contact us', '/contact'],
               ].map(([l, to]) => (
                 <Link key={l} to={to} className="text-sm hover:text-white transition-colors">
                   {l}
@@ -57,15 +75,13 @@ export default function Footer() {
 
           <div>
             <h4 className="font-mono text-[11.5px] tracking-[.13em] uppercase text-accent mb-4 font-medium">
-              Help
+              Support
             </h4>
             <div className="grid gap-2.5">
               {[
-                ['Track your order', '/contact'],
-                ['Delivery & returns', '/contact'],
-                ['Prescription orders', '/contact'],
-                ['Shop all', '/shop'],
-                ['Contact us', '/contact'],
+                ['Track your order', '/track-order'],
+                ['Delivery & returns', '/delivery-returns'],
+                ['Prescription orders', '/prescription-orders'],
               ].map(([l, to]) => (
                 <Link key={l} to={to} className="text-sm hover:text-white transition-colors">
                   {l}
@@ -108,8 +124,12 @@ export default function Footer() {
         <div className="border-t border-white/10 py-5 flex justify-between items-center gap-5 flex-wrap text-[13px]">
           <span>© 2026 Supavice Pharmacy Limited. All rights reserved.</span>
           <div className="flex gap-5 flex-wrap">
-            {['Terms', 'Privacy', 'Cookies', 'Return policy'].map((l) => (
-              <Link key={l} to="/contact" className="hover:text-white transition-colors">
+            {[
+              ['Terms', '/contact'],
+              ['Privacy', '/contact'],
+              ['Return policy', '/delivery-returns'],
+            ].map(([l, to]) => (
+              <Link key={l} to={to} className="hover:text-white transition-colors">
                 {l}
               </Link>
             ))}

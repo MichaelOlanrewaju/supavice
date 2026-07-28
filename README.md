@@ -114,12 +114,10 @@ for a pharmacy.
 | Route          | File                 | What it does                                    |
 | -------------- | -------------------- | ----------------------------------------------- |
 | `/`            | `pages/Home.jsx`     | Hero slider, categories, 3 product rows, brands  |
-| `/shop`        | `pages/Shop.jsx`     | Filters, sort, pagination (24/page, 39 pages)    |
 | `/product/:id` | `pages/Product.jsx`  | Detail, quantity, SKU, related items             |
 | `/cart`        | `pages/Cart.jsx`     | Line items, free-delivery threshold              |
 | `/checkout`    | `pages/Checkout.jsx` | Delivery → payment → review → confirmation       |
 | `/stores`      | `pages/Stores.jsx`   | 9 branches, search, 24-hour filter               |
-| `/about`       | `pages/About.jsx`    | Timeline, values, regulatory disclosure          |
 | `/contact`     | `pages/Contact.jsx`  | Four support desks, form                         |
 
 URL-driven shop filters, all shareable:
@@ -177,6 +175,49 @@ Chunked so a catalogue update doesn't bust the app cache:
 | `descriptions` | 77 KB   | product page only |
 
 Initial load is about 165 KB gzipped; descriptions arrive only when a product page opens.
+
+## No shop/browse page
+
+The catalogue-wide browse page (`/shop` — search, filters, sort, pagination through all 930
+products) has been removed. What remains:
+
+- Curated homepage sections: Popular this month, Best value, New arrivals, a diagnostics spotlight,
+  a supplements spotlight, mother & baby picks — each pulling a subset from `src/data/catalog.js`
+- Individual product pages, reachable from those sections or a direct `/product/:id` URL
+- Category and brand tiles on the homepage are now **display-only** — they show what the store
+  carries but do not link anywhere, since there is no filtered listing to send someone to
+
+There is no way to search the full catalogue, filter by category or brand, sort by price, or browse
+past what the homepage curates. If that capability is needed later, `src/data/catalog.js` and the
+`products`/`categories` exports are unchanged — a browse page can be rebuilt against them.
+
+## One store, not a chain
+
+Supavice is a single Alakuko location — not the multi-branch chain earlier placeholder copy implied.
+Checkout's pickup option, the product page's "collect in store" note, and the footer all point at
+one real address:
+
+```
+13 Baale Animashaun Rd, Alakuko, Lagos 101233
++234 703 313 7748
+```
+
+The old fictional 6-branch pickup selector, 9-branch delivery stat, and the invented PCN/pharmacist
+registration text in the footer have been removed. Replace the address and phone above in
+`Footer.jsx`, `Contact.jsx`, `Checkout.jsx` and `TrackOrder.jsx` if they ever change.
+
+## Checkout: Paystack only
+
+Card, bank transfer and USSD all run through Paystack — there is no cash-on-delivery option. See
+`supabase/migrations/0003_track_order.sql` and `0001_schema.sql` for the matching database
+constraint.
+
+## Guest order tracking
+
+`/track-order` looks up an order by email + order number without requiring sign-in. Rather than
+loosen the `orders` table's Row Level Security to allow public reads, two narrow Postgres functions
+(`track_order`, `track_order_items` in `0003_track_order.sql`) do the lookup server-side and return
+only what the tracking page needs — the rest of the table stays locked down.
 
 ## Backend
 

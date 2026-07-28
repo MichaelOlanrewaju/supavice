@@ -36,18 +36,86 @@ export default function PromoSlider() {
   const b = banners[i]
   const alignRight = b.align === 'right'
 
-  /* Real starting price for whatever this banner links to, rather than a
+  /* Real starting price for whatever this banner is about, rather than a
      hardcoded number that could drift out of sync with the catalogue. */
-  const catSlug = new URLSearchParams(b.to.split('?')[1] || '').get('cat')
-  const pool = catSlug ? products.filter((x) => x.category === catSlug && x.stock) : []
+  const pool = b.cat ? products.filter((x) => x.category === b.cat && x.stock) : []
   const fromPrice = pool.length ? Math.min(...pool.map((x) => x.price)) : null
 
+  const Copy = ({ compact = false }) => (
+    <div
+      key={b.id + (compact ? '-m' : '-d')}
+      className={`flex flex-col animate-fadeUp ${
+        compact ? 'items-start text-left' : alignRight ? 'items-end text-right' : 'items-start text-left'
+      }`}
+    >
+      {b.badge && (
+        <span className="mb-3 w-fit rounded-sm bg-rx px-3 py-1.5 font-mono text-[11px] uppercase tracking-[.12em] text-white">
+          {b.badge}
+        </span>
+      )}
+
+      <span
+        className={`mb-2.5 font-mono text-[11px] uppercase tracking-[.16em] ${
+          compact ? 'text-ink-mute' : 'text-white/75'
+        }`}
+      >
+        {b.kicker}
+      </span>
+
+      <h2
+        className={`font-display font-semibold leading-[1.05] tracking-[-.03em] ${
+          compact ? 'text-[clamp(24px,7vw,32px)] text-ink' : 'text-[clamp(28px,5vw,54px)] text-white drop-shadow-lg'
+        }`}
+      >
+        {b.title}{' '}
+        <span className={compact ? 'text-brand-700' : 'text-accent'}>{b.titleAccent}</span>
+      </h2>
+
+      <p
+        className={`mt-3 max-w-[42ch] text-[14.5px] leading-[1.55] ${
+          compact ? 'text-ink-soft' : 'text-white/85 drop-shadow'
+        }`}
+      >
+        {b.body}
+      </p>
+
+      {fromPrice !== null && (
+        <div className={`mt-4 flex items-baseline gap-2.5 ${!compact && alignRight ? 'justify-end' : ''}`}>
+          <span
+            className={`font-mono text-[11px] uppercase tracking-[.1em] ${
+              compact ? 'text-ink-mute' : 'text-white/60'
+            }`}
+          >
+            From
+          </span>
+          <span
+            className={`font-display text-[22px] font-semibold sm:text-[27px] ${
+              compact ? 'text-ink' : 'text-white'
+            }`}
+          >
+            {formatNaira(fromPrice)}
+          </span>
+        </div>
+      )}
+
+      <div className={`mt-6 flex flex-wrap gap-2.5 ${!compact && alignRight ? 'justify-end' : ''}`}>
+        <Link
+          to={b.to}
+          className="inline-flex items-center gap-2.5 rounded-sm bg-rx-600 px-6 py-3 text-[14px] font-semibold text-white shadow-[0_3px_0_#A11010] transition-all hover:translate-y-[1.5px] hover:shadow-[0_1.5px_0_#A11010] sm:px-7 sm:py-3.5 sm:text-[15px]"
+        >
+          {b.cta}
+          <Arrow className="h-4 w-4" />
+        </Link>
+      </div>
+    </div>
+  )
+
   return (
-    <section className="mx-auto max-w-[1280px] px-6 pt-6 pb-2">
-      <div className="grid lg:grid-cols-[1fr_292px] gap-4">
+    <section className="mx-auto max-w-[1280px] px-6 pb-2 pt-6">
+      <div className="grid gap-4 lg:grid-cols-[1fr_292px]">
         {/* ---------- main slider ---------- */}
         <div
-          className="relative rounded-lg overflow-hidden bg-ink group/slider"
+          className="group/slider overflow-hidden rounded-lg bg-white"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
@@ -60,22 +128,18 @@ export default function PromoSlider() {
           aria-roledescription="carousel"
           aria-label="Featured offers"
         >
-          {/* stacked slides — all mounted, only the active one visible, so images never re-request */}
-          <div className="relative aspect-[5/4] xs:aspect-[16/11] sm:aspect-[2/1] lg:aspect-[1240/620]">
+          {/* ---- image: full, uncropped, at its real ratio, every breakpoint ---- */}
+          <div className="relative aspect-[1280/689] overflow-hidden rounded-lg bg-gradient-to-br from-brand-800 to-ink sm:rounded-lg">
             {banners.map((bn, n) => (
               <div
                 key={bn.id}
                 aria-hidden={n !== i}
                 className={`absolute inset-0 transition-opacity duration-500 ${
-                  n === i ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                  n === i ? 'opacity-100' : 'pointer-events-none opacity-0'
                 }`}
               >
                 <picture>
-                  <source
-                    media="(max-width: 640px)"
-                    srcSet={bn.image.replace('.jpg', '-sm.webp')}
-                    type="image/webp"
-                  />
+                  <source media="(max-width: 640px)" srcSet={bn.image.replace('.jpg', '-sm.webp')} type="image/webp" />
                   <source srcSet={bn.image.replace('.jpg', '.webp')} type="image/webp" />
                   <img
                     src={bn.image}
@@ -85,116 +149,57 @@ export default function PromoSlider() {
                     loading={n === 0 ? 'eager' : 'lazy'}
                     fetchPriority={n === 0 ? 'high' : 'low'}
                     decoding="async"
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 h-full w-full object-contain"
                   />
                 </picture>
-                {/* scrim: strongest on the text side, clear over the product shot */}
+                {/* scrim for the overlay text — desktop/tablet only, since mobile
+                    shows the image plain with text in its own panel below */}
                 <div
-                  className={`absolute inset-0 ${
+                  className={`absolute inset-0 hidden sm:block ${
                     bn.align === 'right'
-                      ? 'bg-gradient-to-l from-black/75 via-black/35 to-transparent sm:via-black/45'
-                      : 'bg-gradient-to-r from-black/75 via-black/35 to-transparent sm:via-black/45'
+                      ? 'bg-gradient-to-l from-black/70 via-black/35 to-transparent'
+                      : 'bg-gradient-to-r from-black/70 via-black/35 to-transparent'
                   }`}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
               </div>
             ))}
 
-            {/* skeleton while the first image loads */}
             {!loaded[b.id] && (
-              <div className="absolute inset-0 bg-gradient-to-br from-[#12395E] to-[#0A2540] animate-pulse" />
+              <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-[#12395E] to-[#0A2540]" />
             )}
 
-            {/* ---------- copy ---------- */}
-            <div
-              className={`absolute inset-0 flex items-center ${
-                alignRight ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              <div
-                key={b.id}
-                className={`w-full max-w-[560px] px-6 sm:px-10 lg:px-12 py-9 sm:py-8 animate-fadeUp ${
-                  alignRight ? 'text-right items-end' : 'text-left items-start'
-                } flex flex-col`}
-              >
-                {b.badge && (
-                  <span className="inline-flex items-center gap-2 bg-rx text-white font-mono text-[11.5px] sm:text-[11px] tracking-[.12em] uppercase px-3 py-1.5 rounded-sm mb-4 w-fit">
-                    {b.badge}
-                  </span>
-                )}
-
-                <span className="font-mono text-[11.5px] sm:text-[11px] tracking-[.16em] uppercase text-white/75 mb-2.5">
-                  {b.kicker}
-                </span>
-
-                <h2 className="font-display font-semibold leading-[1] tracking-[-.03em] text-white text-[clamp(28px,5vw,54px)] drop-shadow-lg">
-                  {b.title}{' '}
-                  <span className="text-accent block sm:inline">{b.titleAccent}</span>
-                </h2>
-
-                <p className="text-white/85 text-[14px] sm:text-[15px] leading-[1.55] max-w-[42ch] mt-3 drop-shadow">
-                  {b.body}
-                </p>
-
-                {fromPrice !== null && (
-                  <div
-                    className={`mt-4 flex items-baseline gap-2.5 ${alignRight ? 'justify-end' : ''}`}
-                  >
-                    <span className="font-mono text-[11.5px] uppercase tracking-[.1em] text-white/60">
-                      From
-                    </span>
-                    <span className="font-display text-[22px] font-semibold text-white sm:text-[27px]">
-                      {formatNaira(fromPrice)}
-                    </span>
-                  </div>
-                )}
-
-                {/* ---------- CTAs ---------- */}
-                <div className={`flex gap-2.5 mt-6 flex-wrap ${alignRight ? 'justify-end' : ''}`}>
-                  <Link
-                    to={b.to}
-                    className="inline-flex items-center gap-2.5 bg-rx-600 text-[#FFFFFF] font-semibold px-6 sm:px-7 py-3 sm:py-3.5 rounded-sm text-[14px] sm:text-[15px] shadow-[0_3px_0_#A11010] hover:translate-y-[1.5px] hover:shadow-[0_1.5px_0_#A11010] transition-all"
-                  >
-                    {b.cta}
-                    <Arrow className="w-[16px] h-[16px]" />
-                  </Link>
-                  {b.ctaSecondary && (
-                    <Link
-                      to={b.toSecondary}
-                      className="inline-flex items-center gap-2 border-[1.5px] border-white/40 text-white font-semibold px-6 py-3 sm:py-3.5 rounded-sm text-[14px] sm:text-[15px] backdrop-blur-sm hover:bg-white/10 hover:border-white transition-colors"
-                    >
-                      {b.ctaSecondary}
-                    </Link>
-                  )}
-                </div>
+            {/* ---- overlay copy: sm and up only ---- */}
+            <div className={`absolute inset-0 hidden items-center sm:flex ${alignRight ? 'justify-end' : 'justify-start'}`}>
+              <div className="w-full max-w-[560px] px-8 py-8 lg:px-12">
+                <Copy />
               </div>
             </div>
 
-            {/* ---------- arrows ---------- */}
+            {/* ---- arrows ---- */}
             <button
               onClick={prev}
               aria-label="Previous offer"
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full grid place-items-center bg-black/35 text-white hover:bg-black/55 transition-colors backdrop-blur-sm opacity-70 sm:opacity-0 group-hover/slider:opacity-100 focus-visible:opacity-100"
+              className="absolute left-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-black/35 text-white opacity-70 backdrop-blur-sm transition-colors hover:bg-black/55 focus-visible:opacity-100 group-hover/slider:opacity-100 sm:h-11 sm:w-11 sm:opacity-0"
             >
-              <ChevLeft className="w-[18px] h-[18px]" />
+              <ChevLeft className="h-[18px] w-[18px]" />
             </button>
             <button
               onClick={next}
               aria-label="Next offer"
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full grid place-items-center bg-black/35 text-white hover:bg-black/55 transition-colors backdrop-blur-sm opacity-70 sm:opacity-0 group-hover/slider:opacity-100 focus-visible:opacity-100"
+              className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-black/35 text-white opacity-70 backdrop-blur-sm transition-colors hover:bg-black/55 focus-visible:opacity-100 group-hover/slider:opacity-100 sm:h-11 sm:w-11 sm:opacity-0"
             >
-              <ChevRight className="w-[18px] h-[18px]" />
+              <ChevRight className="h-[18px] w-[18px]" />
             </button>
 
-            {/* ---------- progress dots ---------- */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+            {/* ---- progress dots ---- */}
+            <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2">
               {banners.map((bn, n) => (
                 <button
                   key={bn.id}
                   onClick={() => go(n)}
                   aria-label={`Go to offer ${n + 1}`}
                   aria-current={n === i}
-                  className="h-1.5 rounded-full transition-all duration-300 overflow-hidden"
+                  className="h-1.5 overflow-hidden rounded-full transition-all duration-300"
                   style={{
                     width: n === i ? 38 : 8,
                     background: n === i ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.45)',
@@ -203,58 +208,53 @@ export default function PromoSlider() {
                   {n === i && (
                     <span
                       key={`${bn.id}-bar`}
-                      className="block h-full bg-white rounded-full"
-                      style={{
-                        animation: paused ? 'none' : `slideProgress ${DURATION}ms linear forwards`,
-                      }}
+                      className="block h-full rounded-full bg-white"
+                      style={{ animation: paused ? 'none' : `slideProgress ${DURATION}ms linear forwards` }}
                     />
                   )}
                 </button>
               ))}
             </div>
           </div>
+
+          {/* ---- mobile-only copy panel, below the full image ---- */}
+          <div className="border-t border-line px-6 py-6 sm:hidden">
+            <Copy compact />
+          </div>
         </div>
 
         {/* ---------- side promos ---------- */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-1 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
           <Link
-            to="/shop?filter=value"
-            className="relative overflow-hidden bg-rx text-white rounded-md p-6 flex flex-col justify-between hover:brightness-110 transition-all group min-h-[150px]"
+            to="/best-value"
+            className="group relative flex min-h-[150px] flex-col justify-between overflow-hidden rounded-md bg-rx p-6 text-white transition-all hover:brightness-110"
           >
             <div className="relative">
-              <span className="font-mono text-[11.5px] tracking-[.13em] uppercase opacity-80">
-                Always on
-              </span>
-              <h3 className="font-display text-[26px] font-semibold leading-tight mt-2">
-                Best value
-              </h3>
-              <p className="text-white/80 text-[13px] mt-2 max-w-[26ch]">
+              <span className="font-mono text-[11px] uppercase tracking-[.13em] opacity-80">Always on</span>
+              <h3 className="mt-2 font-display text-[26px] font-semibold leading-tight">Best value</h3>
+              <p className="mt-2 max-w-[26ch] text-[13px] text-white/80">
                 The lowest price we stock in every aisle.
               </p>
             </div>
-            <span className="relative font-mono text-[11px] tracking-[.09em] uppercase mt-5 flex items-center gap-2">
+            <span className="relative mt-5 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[.09em]">
               Shop now
               <Arrow className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
             </span>
           </Link>
 
           <Link
-            to="/shop"
-            className="relative overflow-hidden bg-white border border-line rounded-md p-6 flex flex-col justify-between hover:border-brand-700 transition-colors group min-h-[150px]"
+            to="/delivery-returns"
+            className="group relative flex min-h-[150px] flex-col justify-between overflow-hidden rounded-md border border-line bg-white p-6 transition-colors hover:border-brand-700"
           >
             <div className="relative">
-              <span className="font-mono text-[11.5px] tracking-[.13em] uppercase text-brand-700">
-                Every day
-              </span>
-              <h3 className="font-display text-[26px] font-semibold leading-tight mt-2">
-                Same-day Lagos
-              </h3>
-              <p className="text-ink-soft text-[13px] mt-2 max-w-[28ch]">
+              <span className="font-mono text-[11px] uppercase tracking-[.13em] text-brand-700">Every day</span>
+              <h3 className="mt-2 font-display text-[26px] font-semibold leading-tight">Same-day Lagos</h3>
+              <p className="mt-2 max-w-[28ch] text-[13px] text-ink-soft">
                 Order before 16:00 and most Lagos deliveries arrive the same day.
               </p>
             </div>
-            <span className="relative font-mono text-[11px] tracking-[.09em] uppercase text-brand-700 mt-5 flex items-center gap-2">
-              See offers
+            <span className="relative mt-5 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[.09em] text-brand-700">
+              See details
               <Arrow className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
             </span>
           </Link>

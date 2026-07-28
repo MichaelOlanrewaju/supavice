@@ -1,40 +1,18 @@
 import { useState } from 'react'
 import { PageHead } from '../components/Bits'
-import { Check, Arrow, Pin, Bag, Chat, Doc, Truck } from '../components/Icons'
+import { Check, Arrow, Pin, Chat } from '../components/Icons'
 
-const desks = [
-  {
-    icon: Bag,
-    title: 'Orders & delivery',
-    body: 'Placing an order, changing one, or asking where the rider is.',
-    tel: '0801 234 5600',
-    mail: 'orders@supavice.ng',
-    hours: 'Daily 07:30 – 21:00',
-  },
-  {
-    icon: Chat,
-    title: 'Clinical questions',
-    body: 'Dosage, interactions, side effects, whether something is safe for you.',
-    tel: '0801 234 5610',
-    mail: 'pharmacist@supavice.ng',
-    hours: 'Daily 08:00 – 22:00',
-  },
-  {
-    icon: Doc,
-    title: 'Complaints & adverse reactions',
-    body: 'Something went wrong, or a medicine caused a reaction. Goes straight to the superintendent pharmacist.',
-    tel: '0801 234 5620',
-    mail: 'care@supavice.ng',
-    hours: 'Answered within 24 hours',
-  },
-  {
-    icon: Truck,
-    title: 'Business & wholesale',
-    body: 'Corporate accounts, HMO billing, bulk supply and partnerships.',
-    tel: '0801 234 5630',
-    mail: 'business@supavice.ng',
-    hours: 'Mon–Fri 09:00 – 17:00',
-  },
+const STORE_ADDRESS = '13 Baale Animashaun Rd, Alakuko, Lagos 101233'
+const MAPS_URL =
+  'https://maps.google.com/maps?vet=10CAAQoqAOahcKEwiYppSVrPWVAxUAAAAAHQAAAAAQEA..i&pvq=Cg0vZy8xMXl6OG1iamNxIhcKEXN1cGF2aWNlIHBoYXJtYWN5EAIYAw&lqi=ChFzdXBhdmljZSBwaGFybWFjeUj2gtWJ-b2AgAhaIxAAEAEYABgBIhFzdXBhdmljZSBwaGFybWFjeSoGCAIQABABkgEIcGhhcm1hY3k&fvr=1&cs=0&um=1&ie=UTF-8&fb=1&gl=ng&sa=X&ftid=0x103b97285a548eef:0x595158c21e2a5c5a'
+const PHONE_DISPLAY = '+234 703 313 7748'
+const PHONE_TEL = 'tel:+2347033137748'
+const WHATSAPP = 'https://wa.me/2347033137748'
+
+const storeImages = [
+  'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnJHanc5wxvBdqh1g9YYy-SsWHxbzpvHmyyFyPraIpsrvF1EUVcT6qsmvCbqkrsxnVobwrFLq_IJ-kJmAlmdkEKKQ_JwqApkwgcEgyY9aGQ-02XFvbj6eZ84OTvnU_moMHSCEZG3PRf8ZiV=w229-h191-n-k-no-nu',
+  'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkSorU4q8BDD2NItJlElH-pG1UjB5GTGVGRBIcqBm8Aa5E9cQ5awh86dr0oNknRGNeOdQcIFgKeLYnF--UYXWcjTK3WXEVcmEMstESFi2b-R5T2PFKbaNnjuMks8vV47kXLRdXhgDwvigoW=s1360-w1360-h1020-rw',
+  'https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnnNOOi80j6Hvp8nItb_-k-yzRre4f_nQQpvtaE1WNbYJUDEKCAatd2qrakxiw6XXVM4xqVxzleQszYl8vAFMeJU3txOMFsrFyvx7pz6poCTZmwiv3lPk7kyCVIjFIZ6pmcyxVpPAbLeac=s1360-w1360-h1020-rw',
 ]
 
 export default function Contact() {
@@ -44,58 +22,44 @@ export default function Contact() {
   return (
     <>
       <PageHead
-        eyebrow="A person picks up"
+        eyebrow="Get in touch"
         title="Talk to us"
-        sub="Four desks, four numbers. Pick the one that matches your question and you skip being transferred."
+        sub="Call, message on WhatsApp, or visit the store in Alakuko — whichever is easiest for you."
       />
 
-      <section className="mx-auto max-w-[1280px] px-6 py-section-sm">
-        <div className="grid sm:grid-cols-2 gap-4 mb-14">
-          {desks.map((d) => (
-            <article key={d.title} className="bg-white border border-line rounded-md p-6">
-              <div className="flex items-start gap-4">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-brand-wash text-brand-700">
-                  <d.icon className="h-5 w-5" />
-                </span>
-                <div className="flex-1">
-                  <h2 className="font-display text-[19px] font-semibold tracking-[-.01em] mb-1.5">
-                    {d.title}
-                  </h2>
-                  <p className="text-[13.5px] text-ink-soft leading-[1.55] mb-4">{d.body}</p>
-                  <div className="grid gap-1.5">
-                    <a
-                      href={`tel:+234${d.tel.replace(/\D/g, '').slice(1)}`}
-                      className="font-mono text-sm text-brand-700 font-medium hover:underline"
-                    >
-                      {d.tel}
-                    </a>
-                    <a
-                      href={`mailto:${d.mail}`}
-                      className="text-[13px] text-ink-soft hover:text-brand-700 transition-colors break-all"
-                    >
-                      {d.mail}
-                    </a>
-                  </div>
-                  <div className="dashed-top mt-4 pt-3 font-mono text-[11.5px] tracking-[.08em] uppercase text-ink-soft">
-                    {d.hours}
-                  </div>
-                </div>
-              </div>
-            </article>
+      {/* ---------- store photos ---------- */}
+      <section className="mx-auto max-w-[1280px] px-6 pt-2">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {storeImages.map((src, i) => (
+            <div
+              key={i}
+              className="aspect-[4/3] overflow-hidden rounded-md border border-line bg-paper"
+            >
+              <img
+                src={src}
+                alt={`Supavice Pharmacy store, Alakuko — photo ${i + 1}`}
+                loading="lazy"
+                className="h-full w-full object-cover"
+                onError={(e) => (e.currentTarget.style.opacity = 0)}
+              />
+            </div>
           ))}
         </div>
+      </section>
 
-        <div className="grid lg:grid-cols-[1.1fr_.9fr] gap-12 items-start">
-          <div className="bg-white border border-line rounded-md p-7 lg:p-9">
+      <section className="mx-auto max-w-[1280px] px-6 py-section-sm">
+        <div className="grid gap-12 lg:grid-cols-[1.1fr_.9fr] lg:items-start">
+          {/* ---------- form ---------- */}
+          <div className="rounded-md border border-line bg-white p-7 lg:p-9">
             {sent ? (
-              <div className="text-center py-12">
-                <div className="w-14 h-14 rounded-full bg-brand-700 text-white grid place-items-center mx-auto mb-4">
-                  <Check className="w-7 h-7" />
+              <div className="py-12 text-center">
+                <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-brand-700 text-white">
+                  <Check className="h-7 w-7" />
                 </div>
-                <h2 className="font-display text-2xl font-semibold mb-2">Message sent</h2>
-                <p className="text-sm text-ink-soft max-w-[38ch] mx-auto">
-                  We reply within one working day, usually much faster. If it is urgent and clinical,
-                  call the pharmacist line instead.
+                <h2 className="mb-2 font-display text-2xl font-semibold">Message sent</h2>
+                <p className="mx-auto max-w-[38ch] text-sm text-ink-soft">
+                  We reply within one working day, usually much faster. For anything urgent, call or
+                  WhatsApp us directly.
                 </p>
                 <button onClick={() => setSent(false)} className="btn-ghost mt-6">
                   Send another
@@ -103,9 +67,9 @@ export default function Contact() {
               </div>
             ) : (
               <>
-                <div className="eyebrow">Or write instead</div>
-                <h2 className="font-display text-[28px] font-semibold tracking-[-.02em] mt-3 mb-6">
-                  Send us a message
+                <div className="eyebrow">Send a message</div>
+                <h2 className="mb-6 mt-3 font-display text-[28px] font-semibold tracking-[-.02em]">
+                  How can we help?
                 </h2>
                 <form
                   onSubmit={(e) => {
@@ -114,44 +78,44 @@ export default function Contact() {
                   }}
                   className="grid gap-4"
                 >
-                  <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     <input
                       required
                       placeholder="Full name"
-                      className="bg-paper border-[1.5px] border-line rounded-sm px-4 py-3 text-sm outline-none focus:border-brand-700"
+                      className="rounded-sm border-[1.5px] border-line bg-paper px-4 py-3 text-sm outline-none focus:border-brand-700"
                     />
                     <input
                       required
                       type="tel"
                       placeholder="Phone number"
-                      className="bg-paper border-[1.5px] border-line rounded-sm px-4 py-3 text-sm outline-none focus:border-brand-700"
+                      className="rounded-sm border-[1.5px] border-line bg-paper px-4 py-3 text-sm outline-none focus:border-brand-700"
                     />
                   </div>
                   <input
                     required
                     type="email"
                     placeholder="Email address"
-                    className="bg-paper border-[1.5px] border-line rounded-sm px-4 py-3 text-sm outline-none focus:border-brand-700"
+                    className="rounded-sm border-[1.5px] border-line bg-paper px-4 py-3 text-sm outline-none focus:border-brand-700"
                   />
                   <div>
-                    <span className="block font-mono text-[11.5px] tracking-[.12em] uppercase text-ink-soft mb-2">
+                    <span className="mb-2 block text-[13.5px] font-semibold uppercase tracking-[.02em] text-ink-soft">
                       What is it about
                     </span>
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex flex-wrap gap-2">
                       {[
                         ['order', 'An order'],
                         ['clinical', 'A clinical question'],
                         ['complaint', 'A complaint'],
-                        ['business', 'Business'],
+                        ['other', 'Something else'],
                       ].map(([id, label]) => (
                         <button
                           key={id}
                           type="button"
                           onClick={() => setTopic(id)}
-                          className={`px-4 py-2 rounded-full text-[13px] font-medium border-[1.5px] transition-colors ${
+                          className={`rounded-full border-[1.5px] px-4 py-2 text-[13px] font-medium transition-colors ${
                             topic === id
-                              ? 'bg-ink text-paper border-ink'
-                              : 'bg-paper border-line hover:border-brand-700'
+                              ? 'border-ink bg-ink text-paper'
+                              : 'border-line bg-paper hover:border-brand-700'
                           }`}
                         >
                           {label}
@@ -162,23 +126,23 @@ export default function Contact() {
                   {topic === 'order' && (
                     <input
                       placeholder="Order number, if you have one"
-                      className="bg-paper border-[1.5px] border-line rounded-sm px-4 py-3 text-sm outline-none focus:border-brand-700"
+                      className="rounded-sm border-[1.5px] border-line bg-paper px-4 py-3 text-sm outline-none focus:border-brand-700"
                     />
                   )}
                   <textarea
                     required
                     rows="5"
                     placeholder="Tell us what is going on"
-                    className="bg-paper border-[1.5px] border-line rounded-sm px-4 py-3 text-sm outline-none focus:border-brand-700 resize-y"
+                    className="resize-y rounded-sm border-[1.5px] border-line bg-paper px-4 py-3 text-sm outline-none focus:border-brand-700"
                   />
                   <button type="submit" className="btn-primary justify-center">
                     Send message
-                    <Arrow className="w-[17px] h-[17px]" />
+                    <Arrow className="h-[17px] w-[17px]" />
                   </button>
                   {topic === 'clinical' && (
-                    <p className="text-[12.5px] text-rx bg-rx/5 border border-rx/20 rounded-sm px-4 py-3">
+                    <p className="rounded-sm border border-rx/20 bg-rx-wash px-4 py-3 text-[12.5px] text-rx">
                       If this is urgent — chest pain, difficulty breathing, a severe reaction — do not
-                      wait for a reply. Call 0801 234 5610 or go to the nearest hospital.
+                      wait for a reply. Call {PHONE_DISPLAY} or go to the nearest hospital.
                     </p>
                   )}
                 </form>
@@ -186,33 +150,69 @@ export default function Contact() {
             )}
           </div>
 
-          <div>
-            <div className="bg-ink text-paper rounded-md p-7">
-              <div className="eyebrow eyebrow-accent">Head office</div>
-              <h3 className="font-display text-2xl font-semibold tracking-[-.02em] mt-3 mb-4">
-                45 Saka Tinubu Street
+          {/* ---------- contact details + map ---------- */}
+          <div className="grid gap-4">
+            <div className="rounded-md bg-ink p-7 text-paper">
+              <div className="eyebrow eyebrow-accent">Our store</div>
+              <h3 className="mb-4 mt-3 font-display text-2xl font-semibold tracking-[-.02em]">
+                Alakuko, Lagos
               </h3>
-              <p className="text-[#B3C4D4] text-sm leading-[1.6] mb-5">
-                Off Adeola Odeku, Victoria Island, Lagos. Reception is on the ground floor, open
-                weekdays 09:00 to 17:00. The pharmacy counter downstairs never closes.
-              </p>
-              <div className="flex items-center gap-2.5 font-mono text-[11px] tracking-[.09em] uppercase text-accent">
-                <Pin className="w-4 h-4" />
-                Open in maps <Arrow className="ml-1.5 inline h-3.5 w-3.5 align-[-2px]" />
+              <p className="mb-5 text-sm leading-[1.6] text-[#B3C4D4]">{STORE_ADDRESS}</p>
+
+              <div className="grid gap-2.5">
+                <a
+                  href={PHONE_TEL}
+                  className="flex items-center gap-2.5 text-[15px] font-semibold text-white hover:text-brand transition-colors"
+                >
+                  {PHONE_DISPLAY}
+                </a>
+                <a
+                  href={WHATSAPP}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 text-[15px] font-semibold text-white hover:text-brand transition-colors"
+                >
+                  <Chat className="h-4 w-4" />
+                  Message us on WhatsApp
+                </a>
               </div>
+
+              <a
+                href={MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 flex items-center gap-2 text-[13.5px] font-medium uppercase tracking-[.02em] text-accent hover:underline"
+              >
+                <Pin className="h-4 w-4" />
+                Open in Google Maps <Arrow className="ml-0.5 inline h-3.5 w-3.5 align-[-2px]" />
+              </a>
             </div>
 
-            <div className="border border-line rounded-md p-7 bg-white mt-4">
-              <h3 className="font-display text-lg font-semibold mb-3">
-                Reporting a side effect
-              </h3>
-              <p className="text-[13.5px] text-ink-soft leading-[1.6] mb-4">
-                Tell us, and also report it to NAFDAC directly through their pharmacovigilance form.
-                Both matter — ours triggers a batch check, theirs feeds the national safety record.
+            <div className="aspect-[4/3] overflow-hidden rounded-md border border-line">
+              <iframe
+                title="Supavice Pharmacy location"
+                src={`https://www.google.com/maps?q=${encodeURIComponent(STORE_ADDRESS)}&output=embed`}
+                className="h-full w-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+
+            <div className="rounded-md border border-line bg-white p-7">
+              <h3 className="mb-3 font-display text-lg font-semibold">Reporting a side effect</h3>
+              <p className="mb-4 text-[13.5px] leading-[1.6] text-ink-soft">
+                Tell us directly, and also report it to NAFDAC through their pharmacovigilance
+                channel. Both matter — ours triggers a batch check here, theirs feeds the national
+                safety record.
               </p>
-              <span className="font-mono text-[11px] tracking-[.09em] uppercase text-brand-700 font-medium">
-                NAFDAC ADR form <Arrow className="ml-1.5 inline h-3.5 w-3.5 align-[-2px]" />
-              </span>
+              <a
+                href="https://nafdac.gov.ng"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[13.5px] font-semibold uppercase tracking-[.02em] text-brand-700 hover:underline"
+              >
+                Visit NAFDAC <Arrow className="ml-1.5 inline h-3.5 w-3.5 align-[-2px]" />
+              </a>
             </div>
           </div>
         </div>

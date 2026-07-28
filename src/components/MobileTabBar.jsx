@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { Home, Grid, Cart, Users as User } from './Icons'
+import { Home, Doc, Cart, Users as User } from './Icons'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 
@@ -17,7 +17,7 @@ export default function MobileTabBar() {
 
   const tabs = [
     { to: '/', label: 'Home', icon: Home, exact: true },
-    { to: '/shop', label: 'Shop', icon: Grid },
+    { to: '/track-order', label: 'Track', icon: Doc },
     { to: '/cart', label: 'Cart', icon: Cart, badge: count },
     { to: user ? '/account' : '/login', label: user ? 'Account' : 'Sign in', icon: User },
   ]

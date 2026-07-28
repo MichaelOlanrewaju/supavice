@@ -217,7 +217,7 @@ export default function Login() {
           ))}
         </ul>
         <Link
-          to="/shop"
+          to="/"
           className="mt-9 inline-flex items-center gap-2 text-[13px] font-semibold text-brand hover:underline"
         >
           Keep shopping instead

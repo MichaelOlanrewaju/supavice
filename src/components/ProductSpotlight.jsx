@@ -66,7 +66,7 @@ export default function ProductSpotlight({ eyebrow, title, sub, hero, picks = []
               </Link>
 
               <div className="flex flex-col justify-center gap-3 p-7 lg:p-9">
-                <span className="font-mono text-[11.5px] uppercase tracking-[.14em] text-brand">
+                <span className="text-[12.5px] font-semibold uppercase tracking-[.06em] text-brand">
                   {hero.brand}
                 </span>
                 <Link
@@ -151,7 +151,7 @@ export default function ProductSpotlight({ eyebrow, title, sub, hero, picks = []
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="font-mono text-[11px] uppercase tracking-[.12em] text-brand-700">
+                  <span className="text-[12.5px] font-semibold uppercase tracking-[.06em] text-brand-700">
                     {p.brand}
                   </span>
                   <b

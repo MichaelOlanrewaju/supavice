@@ -72,9 +72,7 @@ export default function Home() {
   const suppPicks = suppPool.slice(1, 5)
 
   /* mosaic: biggest category as the feature, next six as tiles */
-  const featureCat = categories[0]
-  const mosaicTiles = categories.slice(1, 7)
-  const restCats = categories.slice(7)
+  // all categories now shown together in one uniform grid, no featured tile
 
   const babyPicks = byCategory('mother-baby', 6)
 
@@ -101,11 +99,10 @@ export default function Home() {
 
       {/* ---------- category mosaic ---------- */}
       <CategoryMosaic
-        eyebrow={`${inStock.toLocaleString('en-NG')} products in stock`}
+        eyebrow="Shop by category"
         title="Shop by category"
-        sub="Eighteen aisles, from everyday paracetamol to blood pressure monitors."
-        feature={featureCat}
-        tiles={mosaicTiles}
+        sub="From everyday paracetamol to blood pressure monitors."
+        categories={categories}
       />
 
       {/* ---------- popular carousel ---------- */}
@@ -115,8 +112,6 @@ export default function Home() {
           title="Popular this month"
           sub="What Lagos reaches for most across every aisle."
           items={popular}
-          linkTo="/shop"
-          linkLabel="See all products"
         />
       </div>
 
@@ -124,21 +119,23 @@ export default function Home() {
       <ProductSpotlight
         eyebrow="Home diagnostics"
         title="Know your numbers"
-        sub="Clinically validated monitors from Omron, with free cuff-fitting at any branch."
+        sub="Clinically validated monitors from Omron, with free cuff-fitting in store."
         hero={heroDevice}
         picks={devicePicks}
         tone="light"
       />
 
-      {/* ---------- best value ---------- */}
-      <ProductCarousel
-        eyebrow="Under budget"
-        title="Best value picks"
-        sub="The lowest price we stock in each category — genuine product, nothing cut."
-        items={value}
-        linkTo="/shop?sort=low"
-        linkLabel="Shop by price"
-      />
+      {/* ---------- best value (desktop/tablet only — trimmed from mobile) ---------- */}
+      <div className="hidden sm:block">
+        <ProductCarousel
+          eyebrow="Under budget"
+          title="Best value picks"
+          sub="The lowest price we stock in each category — genuine product, nothing cut."
+          items={value}
+          linkTo="/best-value"
+          linkLabel="See all best value"
+        />
+      </div>
 
       {/* ---------- editorial split: mother & baby ---------- */}
       <section className="border-y border-line bg-white py-section-sm">
@@ -157,12 +154,9 @@ export default function Home() {
                 are not guessing at the counter.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
-                <Link to="/shop?cat=mother-baby" className="btn-primary">
-                  Shop mother &amp; baby
+                <Link to="/contact" className="btn-primary">
+                  Ask about mother &amp; baby stock
                   <Arrow className="h-[17px] w-[17px]" />
-                </Link>
-                <Link to="/shop?cat=vitamins" className="btn-ghost">
-                  Children's vitamins
                 </Link>
               </div>
             </div>
@@ -192,70 +186,27 @@ export default function Home() {
         title="New arrivals"
         sub="Recently added across supplements, skincare and diagnostics."
         items={fresh}
-        linkTo="/shop?filter=new"
+        linkTo="/new-arrivals"
         linkLabel="See what's new"
       />
-
-      {/* ---------- remaining categories ---------- */}
-      <section className="border-y border-line bg-white py-section-sm">
-        <div className="mx-auto max-w-[1280px] px-6">
-          <SectionHead
-            eyebrow="More aisles"
-            title="Browse the rest"
-            sub="Specialist ranges, personal care and everything that did not fit above."
-            linkTo="/shop"
-            linkLabel="All 930 products"
-          />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {restCats.map((c) => (
-              <Link
-                key={c.slug}
-                to={`/shop?cat=${c.slug}`}
-                className="group flex items-center gap-3.5 rounded-md border border-line bg-paper px-4 py-3.5 transition-all duration-300 ease-smooth hover:-translate-y-0.5 hover:border-brand/60 hover:bg-white hover:shadow-card"
-              >
-                {c.image && (
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-white">
-                    <img
-                      src={c.image}
-                      alt=""
-                      loading="lazy"
-                      className="h-full w-full object-contain p-1 transition-transform duration-500 group-hover:scale-110"
-                      onError={(e) => (e.currentTarget.style.opacity = 0)}
-                    />
-                  </span>
-                )}
-                <div className="min-w-0">
-                  <b className="block truncate text-[13px] font-semibold leading-tight tracking-[-.01em]">
-                    {c.name}
-                  </b>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ---------- brands ---------- */}
       <section className="mx-auto max-w-[1280px] px-6 py-section-sm">
         <SectionHead
-          eyebrow="164 brands stocked"
+          eyebrow="Brands we stock"
           title="Names you know"
           sub="From Nigerian manufacturers to imported specialist ranges."
         />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {brands.slice(0, 12).map((b) => (
-            <Link
+            <div
               key={b.name}
-              to={`/shop?brand=${encodeURIComponent(b.name)}`}
-              className="rounded-md border border-line bg-white px-4 py-5 text-center transition-all duration-300 ease-smooth hover:-translate-y-1 hover:border-brand/60 hover:shadow-card"
+              className="grid place-items-center rounded-md border border-line bg-white px-4 py-6 text-center"
             >
               <b className="block truncate font-display text-[15px] font-semibold tracking-[-.015em]">
                 {b.name}
               </b>
-              <span className="font-mono text-[11.5px] uppercase tracking-[.1em] text-ink-mute">
-                {b.count} items
-              </span>
-            </Link>
+            </div>
           ))}
         </div>
       </section>
@@ -277,7 +228,7 @@ export default function Home() {
                 check against the pack when it arrives.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
-                <Link to="/about" className="btn-primary">
+                <Link to="/contact" className="btn-primary">
                   How we source
                   <Arrow className="h-[17px] w-[17px]" />
                 </Link>
@@ -336,8 +287,8 @@ export default function Home() {
             </h2>
             <p className="max-w-[38ch] text-[15px] text-ink-soft">
               Still stuck? Call{' '}
-              <a href="tel:+2348012345600" className="font-semibold text-brand-700 hover:underline">
-                0801 234 5600
+              <a href="tel:+2347033137748" className="font-semibold text-brand-700 hover:underline">
+                +234 703 313 7748
               </a>{' '}
               and a person picks up.
             </p>

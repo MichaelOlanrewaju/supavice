@@ -40,7 +40,7 @@ export default function ProductCard({ p, priority = false }) {
 
         {imgState === 'error' ? (
           <div className="absolute inset-0 grid place-items-center bg-paper px-4 text-center">
-            <span className="font-mono text-[11.5px] uppercase tracking-[.14em] text-ink-mute">
+            <span className="text-[12.5px] font-semibold uppercase tracking-[.06em] text-ink-mute">
               {p.brand}
             </span>
           </div>
@@ -71,7 +71,7 @@ export default function ProductCard({ p, priority = false }) {
         )}
 
         {!p.stock && (
-          <span className="absolute inset-x-0 bottom-0 bg-ink/85 py-1.5 text-center font-mono text-[11.5px] uppercase tracking-[.12em] text-white">
+          <span className="absolute inset-x-0 bottom-0 bg-ink/85 py-1.5 text-center text-[12.5px] font-semibold uppercase tracking-[.06em] text-white">
             Out of stock
           </span>
         )}
@@ -94,7 +94,7 @@ export default function ProductCard({ p, priority = false }) {
       </Link>
 
       <div className="flex flex-1 flex-col gap-2 p-4 pt-3.5">
-        <span className="font-mono text-[11px] uppercase tracking-[.13em] text-brand-700">
+        <span className="text-[12.5px] font-semibold uppercase tracking-[.06em] text-brand-700">
           {p.brand}
         </span>
 
