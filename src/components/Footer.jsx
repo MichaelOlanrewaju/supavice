@@ -64,7 +64,7 @@ export default function Footer() {
                 ['Track your order', '/contact'],
                 ['Delivery & returns', '/contact'],
                 ['Prescription orders', '/contact'],
-                ['Find a store', '/stores'],
+                ['Shop all', '/shop'],
                 ['Contact us', '/contact'],
               ].map(([l, to]) => (
                 <Link key={l} to={to} className="text-sm hover:text-white transition-colors">

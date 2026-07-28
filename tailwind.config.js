@@ -2,33 +2,40 @@
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
+    screens: {
+      xs: '400px',
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+    },
     extend: {
       colors: {
         /* Sampled from the Supavice logo. The pure brand tones are too light
            for text (#00CCFF scores 1.8:1 on white), so darker steps carry
            anything with words in it. */
         brand: {
-          DEFAULT: '#00CCFF',
-          600: '#0091C2',
-          700: '#0077A3',
-          800: '#005E82',
-          900: '#00415C',
-          wash: 'rgba(0, 204, 255, 0.10)',
+          DEFAULT: '#0090C4',
+          600: '#007BA8',
+          700: '#00668C',
+          800: '#004866',
+          900: '#00304A',
+          wash: 'rgba(0, 144, 196, 0.10)',
         },
         rx: {
-          DEFAULT: '#FF0000',
-          600: '#D40000',
-          700: '#B80000',
-          wash: 'rgba(255, 0, 0, 0.07)',
+          DEFAULT: '#E01818',
+          600: '#C21414',
+          700: '#A11010',
+          wash: 'rgba(224, 24, 24, 0.07)',
         },
         ink: {
-          DEFAULT: '#071A2E',
-          soft: '#4A6076',
-          mute: '#8A9BAB',
+          DEFAULT: '#04121F',
+          soft: '#42586C',
+          mute: '#7E90A0',
         },
         paper: '#F6F9FC',
         line: '#E3EAF2',
-        accent: '#00CCFF',
+        accent: '#0090C4',
         /* status colours for the admin dashboard */
         ok: { DEFAULT: '#0E9F6E', bg: '#E7F6EF', border: '#B7E4CE' },
         warn: { DEFAULT: '#B45309', bg: '#FEF3E2', border: '#F5D9A8' },
@@ -36,7 +43,7 @@ export default {
       },
       fontFamily: {
         display: ['"Clash Display"', 'Georgia', 'ui-serif', 'serif'],
-        body: ['Satoshi', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        body: ['Jost', 'Satoshi', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       fontSize: {
@@ -51,14 +58,17 @@ export default {
         'section-sm': 'clamp(2.5rem, 5vw, 4rem)',
       },
       boxShadow: {
-        xs: '0 1px 2px rgba(7,26,46,.05)',
-        card: '0 1px 2px rgba(7,26,46,.05), 0 12px 32px -16px rgba(7,26,46,.22)',
-        lift: '0 2px 4px rgba(7,26,46,.06), 0 24px 48px -20px rgba(7,26,46,.28)',
-        press: '0 3px 0 #005E82',
-        'press-sm': '0 1.5px 0 #005E82',
-        'press-rx': '0 3px 0 #B80000',
-        'press-rx-sm': '0 1.5px 0 #B80000',
-        glow: '0 0 0 4px rgba(0,204,255,.16)',
+        xs: '0 1px 2px rgba(4,18,31,.05)',
+        sm: '0 1px 3px rgba(4,18,31,.06), 0 1px 2px rgba(4,18,31,.04)',
+        card: '0 1px 1px rgba(4,18,31,.04), 0 2px 6px rgba(4,18,31,.05), 0 16px 32px -18px rgba(0,72,102,.18)',
+        lift: '0 2px 4px rgba(4,18,31,.05), 0 8px 16px -6px rgba(0,72,102,.12), 0 28px 56px -24px rgba(0,72,102,.32)',
+        press: '0 3px 0 #004866',
+        'press-sm': '0 1.5px 0 #004866',
+        'press-rx': '0 3px 0 #A11010',
+        'press-rx-sm': '0 1.5px 0 #A11010',
+        glow: '0 0 0 4px rgba(0,144,196,.16)',
+        'inner-top': 'inset 0 1px 0 rgba(255,255,255,.5)',
+        panel: '0 1px 2px rgba(4,18,31,.04), 0 20px 44px -24px rgba(0,72,102,.22)',
       },
       borderRadius: { sm: '7px', md: '14px', lg: '22px', xl: '30px' },
       keyframes: {

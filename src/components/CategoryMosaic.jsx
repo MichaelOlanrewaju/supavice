@@ -41,7 +41,7 @@ export default function CategoryMosaic({ eyebrow, title, sub, feature, tiles = [
           )}
           <div className="relative">
             <span className="font-mono text-[11.5px] uppercase tracking-[.14em] text-brand">
-              {feature.count} products
+              Featured category
             </span>
             <h3 className="mt-2 font-display text-[clamp(26px,3vw,36px)] font-semibold leading-[1.05] tracking-[-.03em]">
               {feature.name}
@@ -72,11 +72,10 @@ export default function CategoryMosaic({ eyebrow, title, sub, feature, tiles = [
                   />
                 )}
               </div>
-              <div className="flex flex-1 flex-col justify-between border-t border-line px-3.5 py-3">
-                <b className="text-[12.5px] font-semibold leading-tight tracking-[-.01em]">
+              <div className="flex flex-1 items-center border-t border-line px-3.5 py-3">
+                <b className="text-[13.5px] font-semibold leading-tight tracking-[-.01em]">
                   {c.name}
                 </b>
-                <span className="mt-1 font-mono text-[11.5px] text-ink-mute">{c.count} items</span>
               </div>
             </Link>
           ))}

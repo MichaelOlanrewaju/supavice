@@ -68,7 +68,7 @@ CATEGORY_META = {
 # preferred pick per category; if a name is missing from the export the
 # importer falls back to the first non-placeholder product in that group.
 CATEGORY_IMAGE_PICK = {
-    "infections":  "Funbact-A Triple Action Cream 30g",
+    "infections":  "Amoxil Beecham (Amoxicillin) 500mg Blister Caps x10",
     "supplements": "Ensure Original Chocolate Shake 237ml",
     "cough":       "Benylin Original Chesty Cough Syrup 150ml",
     "chronic":     "Ventolin (Salbutamol) 100mcg Inhaler x200",

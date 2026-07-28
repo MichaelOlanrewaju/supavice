@@ -211,22 +211,23 @@ export default function Home() {
               <Link
                 key={c.slug}
                 to={`/shop?cat=${c.slug}`}
-                className="group flex items-center gap-3 rounded-md border border-line bg-paper px-3.5 py-3 transition-all duration-300 ease-smooth hover:-translate-y-0.5 hover:border-brand/60 hover:bg-white hover:shadow-card"
+                className="group flex items-center gap-3.5 rounded-md border border-line bg-paper px-4 py-3.5 transition-all duration-300 ease-smooth hover:-translate-y-0.5 hover:border-brand/60 hover:bg-white hover:shadow-card"
               >
                 {c.image && (
-                  <img
-                    src={c.image}
-                    alt=""
-                    loading="lazy"
-                    className="h-10 w-10 shrink-0 object-contain transition-transform duration-500 group-hover:scale-110"
-                    onError={(e) => (e.currentTarget.style.opacity = 0)}
-                  />
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-white">
+                    <img
+                      src={c.image}
+                      alt=""
+                      loading="lazy"
+                      className="h-full w-full object-contain p-1 transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => (e.currentTarget.style.opacity = 0)}
+                    />
+                  </span>
                 )}
                 <div className="min-w-0">
-                  <b className="block truncate text-[12.5px] font-semibold leading-tight tracking-[-.01em]">
+                  <b className="block truncate text-[13px] font-semibold leading-tight tracking-[-.01em]">
                     {c.name}
                   </b>
-                  <span className="font-mono text-[11.5px] text-ink-mute">{c.count}</span>
                 </div>
               </Link>
             ))}

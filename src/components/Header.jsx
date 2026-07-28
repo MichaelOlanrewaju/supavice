@@ -6,10 +6,9 @@ import { useAuth } from '../context/AuthContext'
 import { formatNaira } from '../data/catalog'
 
 const nav = [
-  { to: '/shop', label: 'All products' },
+  { to: '/shop', label: 'Shop' },
   { to: '/shop?filter=value', label: 'Best value' },
   { to: '/shop?filter=new', label: 'New arrivals' },
-  { to: '/stores', label: 'Stores' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Help' },
 ]
@@ -35,7 +34,7 @@ export default function Header() {
             Same-day delivery across Lagos — <b className="font-semibold text-white">order before 16:00</b>
           </p>
           <div className="hidden sm:flex gap-5">
-            <Link to="/stores" className="hover:text-white hover:underline">
+            <Link to="/shop" className="hover:text-white hover:underline">
               Find a store
             </Link>
             <Link to="/contact" className="hover:text-white hover:underline">

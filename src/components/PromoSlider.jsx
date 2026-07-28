@@ -61,7 +61,7 @@ export default function PromoSlider() {
           aria-label="Featured offers"
         >
           {/* stacked slides — all mounted, only the active one visible, so images never re-request */}
-          <div className="relative aspect-[16/10] sm:aspect-[2/1] lg:aspect-[1240/620]">
+          <div className="relative aspect-[5/4] xs:aspect-[16/11] sm:aspect-[2/1] lg:aspect-[1240/620]">
             {banners.map((bn, n) => (
               <div
                 key={bn.id}
@@ -92,8 +92,8 @@ export default function PromoSlider() {
                 <div
                   className={`absolute inset-0 ${
                     bn.align === 'right'
-                      ? 'bg-gradient-to-l from-black/80 via-black/45 to-transparent'
-                      : 'bg-gradient-to-r from-black/80 via-black/45 to-transparent'
+                      ? 'bg-gradient-to-l from-black/75 via-black/35 to-transparent sm:via-black/45'
+                      : 'bg-gradient-to-r from-black/75 via-black/35 to-transparent sm:via-black/45'
                   }`}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
@@ -113,7 +113,7 @@ export default function PromoSlider() {
             >
               <div
                 key={b.id}
-                className={`w-full max-w-[560px] px-7 sm:px-10 lg:px-12 py-8 animate-fadeUp ${
+                className={`w-full max-w-[560px] px-6 sm:px-10 lg:px-12 py-9 sm:py-8 animate-fadeUp ${
                   alignRight ? 'text-right items-end' : 'text-left items-start'
                 } flex flex-col`}
               >
@@ -132,7 +132,7 @@ export default function PromoSlider() {
                   <span className="text-accent block sm:inline">{b.titleAccent}</span>
                 </h2>
 
-                <p className="text-white/85 text-[13px] sm:text-[15px] leading-[1.5] max-w-[42ch] mt-3 hidden sm:block drop-shadow">
+                <p className="text-white/85 text-[14px] sm:text-[15px] leading-[1.55] max-w-[42ch] mt-3 drop-shadow">
                   {b.body}
                 </p>
 
@@ -153,7 +153,7 @@ export default function PromoSlider() {
                 <div className={`flex gap-2.5 mt-6 flex-wrap ${alignRight ? 'justify-end' : ''}`}>
                   <Link
                     to={b.to}
-                    className="inline-flex items-center gap-2.5 bg-rx-600 text-[#FFFFFF] font-semibold px-6 sm:px-7 py-3 sm:py-3.5 rounded-sm text-[14px] sm:text-[15px] shadow-[0_3px_0_#B80000] hover:translate-y-[1.5px] hover:shadow-[0_1.5px_0_#B80000] transition-all"
+                    className="inline-flex items-center gap-2.5 bg-rx-600 text-[#FFFFFF] font-semibold px-6 sm:px-7 py-3 sm:py-3.5 rounded-sm text-[14px] sm:text-[15px] shadow-[0_3px_0_#A11010] hover:translate-y-[1.5px] hover:shadow-[0_1.5px_0_#A11010] transition-all"
                   >
                     {b.cta}
                     <Arrow className="w-[16px] h-[16px]" />
@@ -161,7 +161,7 @@ export default function PromoSlider() {
                   {b.ctaSecondary && (
                     <Link
                       to={b.toSecondary}
-                      className="hidden sm:inline-flex items-center gap-2 border-[1.5px] border-white/40 text-white font-semibold px-6 py-3.5 rounded-sm text-[15px] backdrop-blur-sm hover:bg-white/10 hover:border-white transition-colors"
+                      className="inline-flex items-center gap-2 border-[1.5px] border-white/40 text-white font-semibold px-6 py-3 sm:py-3.5 rounded-sm text-[14px] sm:text-[15px] backdrop-blur-sm hover:bg-white/10 hover:border-white transition-colors"
                     >
                       {b.ctaSecondary}
                     </Link>
@@ -174,14 +174,14 @@ export default function PromoSlider() {
             <button
               onClick={prev}
               aria-label="Previous offer"
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full grid place-items-center bg-black/30 text-white hover:bg-black/55 transition-colors backdrop-blur-sm opacity-0 group-hover/slider:opacity-100 focus-visible:opacity-100"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full grid place-items-center bg-black/35 text-white hover:bg-black/55 transition-colors backdrop-blur-sm opacity-70 sm:opacity-0 group-hover/slider:opacity-100 focus-visible:opacity-100"
             >
               <ChevLeft className="w-[18px] h-[18px]" />
             </button>
             <button
               onClick={next}
               aria-label="Next offer"
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full grid place-items-center bg-black/30 text-white hover:bg-black/55 transition-colors backdrop-blur-sm opacity-0 group-hover/slider:opacity-100 focus-visible:opacity-100"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full grid place-items-center bg-black/35 text-white hover:bg-black/55 transition-colors backdrop-blur-sm opacity-70 sm:opacity-0 group-hover/slider:opacity-100 focus-visible:opacity-100"
             >
               <ChevRight className="w-[18px] h-[18px]" />
             </button>

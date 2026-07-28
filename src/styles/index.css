@@ -9,11 +9,16 @@
   }
 
   body {
-    @apply bg-paper font-body text-ink antialiased;
+    @apply font-body text-ink antialiased;
     font-size: 15px;
     line-height: 1.6;
     font-feature-settings: 'ss01', 'cv01';
     text-rendering: optimizeLegibility;
+    background-color: #F6F9FC;
+    background-image:
+      radial-gradient(1100px 520px at 8% -8%, rgba(0,144,196,.05), transparent 55%),
+      radial-gradient(900px 480px at 100% 0%, rgba(0,72,102,.04), transparent 50%);
+    background-attachment: fixed;
   }
 
   /* Clash Display is a display face — it needs optical tightening that the
@@ -31,13 +36,13 @@
   }
 
   :focus-visible {
-    outline: 2.5px solid #0077a3;
+    outline: 2.5px solid #00668c;
     outline-offset: 3px;
     border-radius: 4px;
   }
 
   ::selection {
-    background: rgba(0, 204, 255, 0.28);
+    background: rgba(0, 144, 196, 0.28);
   }
 
   /* Softer, brand-tinted scrollbar on desktop */
@@ -55,7 +60,7 @@
       border: 3px solid #eef3f8;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #0077a3;
+      background: #00668c;
     }
   }
 }
@@ -85,32 +90,37 @@
 
   /* ---------- buttons ---------- */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2.5 rounded-sm bg-brand-700 px-7 py-3.5
+    @apply inline-flex items-center justify-center gap-2.5 rounded-sm px-7 py-3.5
            text-[14.5px] font-bold text-white shadow-press transition-all duration-150;
+    background-image: linear-gradient(180deg, #0077A3, #00668C);
   }
   .btn-primary:hover:not(:disabled) {
     @apply shadow-press-sm;
+    background-image: linear-gradient(180deg, #00819C, #005E82);
     transform: translateY(1.5px);
   }
   .btn-primary:disabled {
     @apply cursor-default opacity-40 shadow-none;
+    background-image: none;
   }
 
   .btn-rx {
-    @apply inline-flex items-center justify-center gap-2.5 rounded-sm bg-rx-600 px-7 py-3.5
+    @apply inline-flex items-center justify-center gap-2.5 rounded-sm px-7 py-3.5
            text-[14.5px] font-bold text-white shadow-press-rx transition-all duration-150;
+    background-image: linear-gradient(180deg, #D42020, #C21414);
   }
   .btn-rx:hover {
     @apply shadow-press-rx-sm;
+    background-image: linear-gradient(180deg, #DC2A2A, #A11010);
     transform: translateY(1.5px);
   }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2.5 rounded-sm border-[1.5px] border-line
-           bg-white px-6 py-3.5 text-[14.5px] font-bold transition-colors duration-200;
+           bg-white px-6 py-3.5 text-[14.5px] font-bold shadow-xs transition-all duration-200;
   }
   .btn-ghost:hover {
-    @apply border-brand-700 text-brand-700;
+    @apply border-brand-700 text-brand-700 shadow-sm;
   }
 
   /* ---------- nav ---------- */
@@ -161,7 +171,7 @@
   }
 
   .live-dot {
-    @apply h-[7px] w-[7px] rounded-full bg-[#22C55E];
+    @apply h-[7px] w-[7px] rounded-full bg-[#12A150];
     box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
   }
 

@@ -28,10 +28,10 @@ export default function ProductCard({ p, priority = false }) {
   }
 
   return (
-    <article className="group/card relative flex w-full flex-col overflow-hidden rounded-md border border-line bg-white transition-[border-color,box-shadow,transform] duration-300 ease-smooth hover:-translate-y-1 hover:border-brand/60 hover:shadow-lift">
+    <article className="group/card relative flex w-full flex-col overflow-hidden rounded-md border border-line bg-white shadow-xs transition-[border-color,box-shadow,transform] duration-300 ease-smooth hover:-translate-y-1 hover:border-brand/50 hover:shadow-lift">
       <Link
         to={`/product/${p.id}`}
-        className="relative block aspect-square overflow-hidden bg-white"
+        className="relative block aspect-square overflow-hidden bg-gradient-to-b from-white to-[#FAFCFE]"
         aria-label={p.name}
       >
         {imgState === 'loading' && (

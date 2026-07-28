@@ -7,7 +7,6 @@ import Home from './pages/Home'
 import Shop from './pages/Shop'
 import Product from './pages/Product'
 import Checkout from './pages/Checkout'
-import Stores from './pages/Stores'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import Cart from './pages/Cart'
@@ -60,7 +59,6 @@ export default function App() {
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:id" element={<Product />} />
           <Route path="/checkout" element={<Checkout />} />
-          <Route path="/stores" element={<Stores />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/cart" element={<Cart />} />

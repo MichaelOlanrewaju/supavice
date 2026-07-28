@@ -18,7 +18,7 @@ import {
 } from '../components/Icons'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
-import { formatNaira } from '../data/catalog'
+import { formatNaira, categories } from '../data/catalog'
 
 const NAV = [
   ['overview', 'Dashboard', Home],
@@ -70,9 +70,10 @@ export default function Admin() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-[264px] flex-col bg-ink text-white transition-transform duration-300 ease-smooth lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-[264px] flex-col text-white shadow-panel transition-transform duration-300 ease-smooth lg:static lg:translate-x-0 ${
           navOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{ backgroundImage: 'linear-gradient(175deg, #071A2E 0%, #04121F 65%, #030D18 100%)' }}
       >
         <div className="flex items-center gap-3 border-b border-white/10 px-6 py-5">
           <img src="/brand/supavice-logo-white.png" alt="Supavice" className="h-7 w-auto" />
@@ -96,7 +97,7 @@ export default function Admin() {
                 }}
                 className={`mb-0.5 flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-[14.5px] font-medium transition-colors ${
                   active
-                    ? 'bg-brand-700 text-white shadow-[inset_3px_0_0_#00CCFF]'
+                    ? 'bg-brand-700 text-white shadow-[inset_3px_0_0_#0090C4]'
                     : 'text-[#A8BDD0] hover:bg-white/[.06] hover:text-white'
                 }`}
               >
@@ -150,7 +151,7 @@ export default function Admin() {
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 p-5 lg:p-8">
+        <main className="min-w-0 flex-1 bg-[radial-gradient(1200px_600px_at_100%_-10%,rgba(0,144,196,.05),transparent_55%)] p-5 lg:p-8">
           {tab === 'overview' && <Overview onJump={setTab} />}
           {tab === 'products' && <Products />}
           {tab === 'orders' && <Orders />}
@@ -200,28 +201,35 @@ function Overview({ onJump }) {
   if (!stats) return <Skeleton rows={2} />
 
   const cards = [
-    ['Order value', formatNaira(stats.revenue), 'excludes cancelled', Chart, 'text-ok'],
-    ['Orders', stats.orders.toLocaleString('en-NG'), `${stats.pending} awaiting action`, Cart, 'text-brand-700'],
-    ['Products live', stats.products.toLocaleString('en-NG'), `${stats.outOfStock} out of stock`, Box, 'text-info'],
-    ['Customers', stats.users.toLocaleString('en-NG'), 'registered accounts', UsersIcon, 'text-warn'],
+    ['Order value', formatNaira(stats.revenue), 'excludes cancelled', Chart, 'text-ok bg-ok-bg'],
+    ['Orders', stats.orders.toLocaleString('en-NG'), `${stats.pending} awaiting action`, Cart, 'text-brand-700 bg-brand-wash'],
+    ['Products live', stats.products.toLocaleString('en-NG'), `${stats.outOfStock} out of stock`, Box, 'text-info bg-info-bg'],
+    ['Customers', stats.users.toLocaleString('en-NG'), 'registered accounts', UsersIcon, 'text-warn bg-warn-bg'],
   ]
 
   return (
     <div className="grid gap-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(([label, value, hint, Icon, tint]) => (
-          <div key={label} className="rounded-xl border border-line bg-white p-5 shadow-xs">
+          <div
+            key={label}
+            className="group rounded-xl border border-line bg-white p-5 shadow-panel transition-all duration-300 ease-smooth hover:-translate-y-0.5 hover:shadow-lift"
+          >
             <div className="flex items-start justify-between">
               <span className="text-[13px] font-medium text-ink-soft">{label}</span>
-              <Icon className={`h-5 w-5 ${tint}`} />
+              <span
+                className={`grid h-9 w-9 place-items-center rounded-lg transition-transform duration-300 group-hover:scale-105 ${tint}`}
+              >
+                <Icon className="h-[18px] w-[18px]" />
+              </span>
             </div>
-            <p className="mt-3 font-display text-[30px] font-semibold tracking-[-.03em]">{value}</p>
+            <p className="mt-4 font-display text-[30px] font-semibold tracking-[-.03em]">{value}</p>
             <p className="mt-1 text-[12.5px] text-ink-mute">{hint}</p>
           </div>
         ))}
       </div>
 
-      <div className="rounded-xl border border-line bg-white shadow-xs">
+      <div className="rounded-xl border border-line bg-white shadow-panel">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <h2 className="text-[16px] font-semibold">Recent orders</h2>
           <button
@@ -256,26 +264,43 @@ function Overview({ onJump }) {
 
 function Products() {
   const [rows, setRows] = useState(null)
+  const [total, setTotal] = useState(0)
   const [q, setQ] = useState('')
+  const [catFilter, setCatFilter] = useState('all')
+  const [sort, setSort] = useState('name')
   const [editing, setEditing] = useState(null)
   const [page, setPage] = useState(0)
+  const [selected, setSelected] = useState(new Set())
   const PER = 20
 
   const load = useCallback(async () => {
     if (!supabase) return
     let query = supabase
       .from('products')
-      .select('id, name, brand, price, category, stock, pom, active, image, pack, sku')
-      .order('name')
+      .select('id, name, brand, price, category, stock, pom, active, image, pack, sku', {
+        count: 'exact',
+      })
       .range(page * PER, page * PER + PER - 1)
+
+    if (sort === 'name') query = query.order('name')
+    if (sort === 'price_high') query = query.order('price', { ascending: false })
+    if (sort === 'price_low') query = query.order('price', { ascending: true })
+    if (sort === 'brand') query = query.order('brand')
+
     if (q.trim()) query = query.ilike('name', `%${q.trim()}%`)
-    const { data } = await query
+    if (catFilter !== 'all') query = query.eq('category', catFilter)
+
+    const { data, count } = await query
     setRows(data || [])
-  }, [q, page])
+    setTotal(count || 0)
+    setSelected(new Set())
+  }, [q, catFilter, sort, page])
 
   useEffect(() => {
     load()
   }, [load])
+
+  useEffect(() => setPage(0), [q, catFilter, sort])
 
   const toggle = async (p, field) => {
     await supabase.from('products').update({ [field]: !p[field] }).eq('id', p.id)
@@ -293,135 +318,266 @@ function Products() {
     load()
   }
 
+  const bulkHide = async (active) => {
+    if (!selected.size) return
+    await supabase.from('products').update({ active }).in('id', [...selected])
+    load()
+  }
+
+  const bulkDelete = async () => {
+    if (!selected.size) return
+    if (!confirm(`Delete ${selected.size} product(s)? This cannot be undone.`)) return
+    await supabase.from('products').delete().in('id', [...selected])
+    load()
+  }
+
+  const toggleRow = (id) => {
+    setSelected((s) => {
+      const next = new Set(s)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleAll = () => {
+    setSelected((s) => (s.size === rows.length ? new Set() : new Set(rows.map((r) => r.id))))
+  }
+
+  const pageCount = Math.max(1, Math.ceil(total / PER))
+
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-4">
+      {/* ---- toolbar ---- */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-1 items-center gap-2.5 rounded-lg border border-line bg-white px-4 shadow-xs focus-within:border-brand-700">
+        <div className="flex min-w-[220px] flex-1 items-center gap-2.5 rounded-lg border border-line bg-white shadow-panel px-4 shadow-xs focus-within:border-brand-700">
           <Search className="h-[18px] w-[18px] shrink-0 text-ink-mute" />
           <input
             value={q}
-            onChange={(e) => {
-              setQ(e.target.value)
-              setPage(0)
-            }}
-            placeholder="Search products"
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search products by name"
             className="min-w-0 flex-1 bg-transparent py-3 text-[15px] outline-none"
           />
         </div>
+
+        <select
+          value={catFilter}
+          onChange={(e) => setCatFilter(e.target.value)}
+          className="rounded-lg border border-line bg-white shadow-panel px-3.5 py-3 text-[14px] font-medium shadow-xs outline-none focus:border-brand-700"
+        >
+          <option value="all">All categories</option>
+          {categories.map((c) => (
+            <option key={c.slug} value={c.slug}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          className="rounded-lg border border-line bg-white shadow-panel px-3.5 py-3 text-[14px] font-medium shadow-xs outline-none focus:border-brand-700"
+        >
+          <option value="name">Name A–Z</option>
+          <option value="brand">Brand</option>
+          <option value="price_high">Price: high to low</option>
+          <option value="price_low">Price: low to high</option>
+        </select>
+
         <button
           onClick={() => setEditing({ ...emptyProduct })}
-          className="flex items-center gap-2 rounded-lg bg-brand-700 px-5 py-3 text-[14.5px] font-bold text-white transition-colors hover:bg-brand-800"
+          className="ml-auto flex items-center gap-2 rounded-lg bg-brand-700 px-5 py-3 text-[14.5px] font-bold text-white shadow-xs transition-colors hover:bg-brand-800"
         >
           <Plus className="h-[18px] w-[18px]" />
           Add product
         </button>
       </div>
 
+      {/* ---- result count / bulk bar ---- */}
+      <div className="flex items-center justify-between text-[13.5px] text-ink-soft">
+        <span>
+          {total.toLocaleString('en-NG')} product{total === 1 ? '' : 's'}
+          {catFilter !== 'all' && ` in ${categories.find((c) => c.slug === catFilter)?.name}`}
+        </span>
+
+        {selected.size > 0 && (
+          <div className="flex items-center gap-3 rounded-lg border border-brand/30 bg-brand-wash px-4 py-2">
+            <span className="font-semibold text-brand-800">{selected.size} selected</span>
+            <button
+              onClick={() => bulkHide(false)}
+              className="font-semibold text-ink-soft hover:text-brand-700"
+            >
+              Hide
+            </button>
+            <button
+              onClick={() => bulkHide(true)}
+              className="font-semibold text-ink-soft hover:text-brand-700"
+            >
+              Show
+            </button>
+            <button onClick={bulkDelete} className="font-semibold text-rx hover:underline">
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ---- table ---- */}
       {rows === null ? (
-        <Skeleton rows={6} />
+        <Skeleton rows={8} />
       ) : rows.length === 0 ? (
-        <Empty text="No products matched." />
+        <Empty text="No products matched. Try a different search or category." />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-line bg-white shadow-xs">
-          <div className="hidden grid-cols-[auto_1fr_120px_110px_140px] items-center gap-4 border-b border-line bg-[#F8FAFC] px-5 py-3 text-[13px] font-semibold uppercase tracking-[.06em] text-ink-mute lg:grid">
-            <span className="w-11">Image</span>
+        <div className="overflow-hidden rounded-xl border border-line bg-white shadow-panel">
+          <div className="hidden grid-cols-[28px_52px_1fr_120px_110px_120px_150px] items-center gap-4 border-b border-line bg-[#F8FAFC] px-5 py-3 text-[12.5px] font-bold uppercase tracking-[.06em] text-ink-mute lg:grid">
+            <input
+              type="checkbox"
+              checked={rows.length > 0 && selected.size === rows.length}
+              onChange={toggleAll}
+              className="h-4 w-4 accent-[#00668C]"
+            />
+            <span />
             <span>Product</span>
+            <span>Category</span>
             <span>Price</span>
-            <span>Status</span>
+            <span>Stock</span>
             <span className="text-right">Actions</span>
           </div>
 
           <div className="divide-y divide-line">
-            {rows.map((p) => (
-              <div
-                key={p.id}
-                className={`grid grid-cols-[auto_1fr] items-center gap-4 px-5 py-3.5 lg:grid-cols-[auto_1fr_120px_110px_140px] ${
-                  !p.active ? 'opacity-55' : ''
-                }`}
-              >
-                <img
-                  src={p.image}
-                  alt=""
-                  className="h-11 w-11 shrink-0 rounded-md border border-line bg-white object-contain p-1"
-                  onError={(e) => (e.currentTarget.style.opacity = 0)}
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-[14.5px] font-semibold">{p.name}</p>
-                  <p className="text-[12.5px] text-ink-soft">
-                    {p.brand}
-                    {p.pack ? ` · ${p.pack}` : ''}
-                    {p.pom ? ' · ℞' : ''}
-                  </p>
-                  <p className="mt-1 font-display text-[15px] font-semibold lg:hidden">
-                    {formatNaira(p.price)}
-                  </p>
-                </div>
-
-                <span className="hidden font-display text-[15px] font-semibold lg:block">
-                  {formatNaira(p.price)}
-                </span>
-
-                <button
-                  onClick={() => toggle(p, 'stock')}
-                  className={`hidden w-fit rounded-full border px-3 py-1 text-[13px] font-semibold transition-colors lg:block ${
-                    p.stock
-                      ? 'border-ok-border bg-ok-bg text-ok'
-                      : 'border-line bg-paper text-ink-mute'
+            {rows.map((p) => {
+              const cat = categories.find((c) => c.slug === p.category)
+              return (
+                <div
+                  key={p.id}
+                  className={`grid grid-cols-[28px_44px_1fr] items-center gap-3 px-5 py-3.5 transition-colors hover:bg-[#FAFBFD] lg:grid-cols-[28px_52px_1fr_120px_110px_120px_150px] lg:gap-4 ${
+                    !p.active ? 'opacity-50' : ''
                   }`}
                 >
-                  {p.stock ? 'In stock' : 'Out of stock'}
-                </button>
+                  <input
+                    type="checkbox"
+                    checked={selected.has(p.id)}
+                    onChange={() => toggleRow(p.id)}
+                    className="h-4 w-4 accent-[#00668C]"
+                  />
 
-                <div className="col-span-2 mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 lg:col-span-1 lg:mt-0 lg:justify-end">
+                  <img
+                    src={p.image}
+                    alt=""
+                    className="h-11 w-11 shrink-0 rounded-md border border-line bg-white object-contain p-1 lg:h-12 lg:w-12"
+                    onError={(e) => (e.currentTarget.style.opacity = 0)}
+                  />
+
+                  <div className="min-w-0">
+                    <p className="truncate text-[14.5px] font-semibold leading-snug">{p.name}</p>
+                    <p className="mt-0.5 text-[12.5px] text-ink-soft">
+                      {p.brand}
+                      {p.pack ? ` · ${p.pack}` : ''}
+                      {p.sku ? ` · ${p.sku}` : ''}
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5 lg:hidden">
+                      {cat && (
+                        <span className="rounded-full bg-paper px-2.5 py-0.5 text-[12px] font-medium text-ink-soft">
+                          {cat.name}
+                        </span>
+                      )}
+                      {p.pom && (
+                        <span className="rounded-full border border-rx/25 bg-rx-wash px-2.5 py-0.5 text-[12px] font-semibold text-rx-700">
+                          ℞
+                        </span>
+                      )}
+                      <span className="font-display text-[15px] font-semibold">
+                        {formatNaira(p.price)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <span className="hidden lg:block">
+                    {cat ? (
+                      <span className="w-fit rounded-full bg-paper px-2.5 py-1 text-[12.5px] font-medium text-ink-soft">
+                        {cat.name}
+                      </span>
+                    ) : (
+                      <span className="text-[13px] text-ink-mute">—</span>
+                    )}
+                  </span>
+
+                  <span className="hidden items-center gap-1.5 font-display text-[15px] font-semibold lg:flex">
+                    {formatNaira(p.price)}
+                    {p.pom && (
+                      <span className="rounded-sm border border-rx/25 bg-rx-wash px-1.5 py-0.5 text-[11px] font-bold text-rx-700">
+                        ℞
+                      </span>
+                    )}
+                  </span>
+
                   <button
                     onClick={() => toggle(p, 'stock')}
-                    className={`rounded-full border px-2.5 py-1 text-[13px] font-semibold lg:hidden ${
+                    className={`hidden w-fit items-center gap-1.5 rounded-full border px-3 py-1 text-[12.5px] font-semibold transition-colors lg:flex ${
                       p.stock
                         ? 'border-ok-border bg-ok-bg text-ok'
                         : 'border-line bg-paper text-ink-mute'
                     }`}
                   >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${p.stock ? 'bg-ok' : 'bg-ink-mute'}`}
+                    />
                     {p.stock ? 'In stock' : 'Out'}
                   </button>
-                  <button
-                    onClick={() => toggle(p, 'active')}
-                    className="text-[13px] font-medium text-ink-soft hover:text-brand-700"
-                  >
-                    {p.active ? 'Hide' : 'Show'}
-                  </button>
-                  <button
-                    onClick={() => setEditing(p)}
-                    className="text-[13px] font-semibold text-brand-700 hover:underline"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => remove(p)}
-                    aria-label="Delete"
-                    className="text-ink-mute transition-colors hover:text-rx"
-                  >
-                    <Trash className="h-[17px] w-[17px]" />
-                  </button>
+
+                  <div className="col-span-3 mt-1 flex flex-wrap items-center gap-x-4 gap-y-2 lg:col-span-1 lg:mt-0 lg:justify-end">
+                    <button
+                      onClick={() => toggle(p, 'stock')}
+                      className={`rounded-full border px-2.5 py-1 text-[12.5px] font-semibold lg:hidden ${
+                        p.stock
+                          ? 'border-ok-border bg-ok-bg text-ok'
+                          : 'border-line bg-paper text-ink-mute'
+                      }`}
+                    >
+                      {p.stock ? 'In stock' : 'Out'}
+                    </button>
+                    <button
+                      onClick={() => toggle(p, 'active')}
+                      className="text-[13px] font-semibold text-ink-soft hover:text-brand-700"
+                    >
+                      {p.active ? 'Hide' : 'Show'}
+                    </button>
+                    <button
+                      onClick={() => setEditing(p)}
+                      className="text-[13px] font-semibold text-brand-700 hover:underline"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => remove(p)}
+                      aria-label="Delete"
+                      className="text-ink-mute transition-colors hover:text-rx"
+                    >
+                      <Trash className="h-[17px] w-[17px]" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
 
+      {/* ---- pagination ---- */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => setPage(Math.max(0, page - 1))}
           disabled={page === 0}
-          className="rounded-lg border border-line bg-white px-5 py-2.5 text-[14px] font-semibold shadow-xs disabled:opacity-40"
+          className="rounded-lg border border-line bg-white shadow-panel px-5 py-2.5 text-[14px] font-semibold shadow-xs disabled:opacity-40"
         >
           Previous
         </button>
-        <span className="text-[14px] text-ink-soft">Page {page + 1}</span>
+        <span className="text-[13.5px] text-ink-soft">
+          Page {page + 1} of {pageCount}
+        </span>
         <button
           onClick={() => setPage(page + 1)}
-          disabled={(rows?.length || 0) < PER}
-          className="rounded-lg border border-line bg-white px-5 py-2.5 text-[14px] font-semibold shadow-xs disabled:opacity-40"
+          disabled={page + 1 >= pageCount}
+          className="rounded-lg border border-line bg-white shadow-panel px-5 py-2.5 text-[14px] font-semibold shadow-xs disabled:opacity-40"
         >
           Next
         </button>
@@ -501,7 +657,7 @@ function ProductEditor({ product, onClose, onSaved }) {
                   type="checkbox"
                   checked={Boolean(form[k])}
                   onChange={(e) => set(k, e.target.checked)}
-                  className="h-[18px] w-[18px] accent-[#0077A3]"
+                  className="h-[18px] w-[18px] accent-[#00668C]"
                 />
                 {label}
               </label>
@@ -596,7 +752,7 @@ function Orders() {
       ) : (
         <div className="grid gap-4">
           {rows.map((o) => (
-            <div key={o.id} className="rounded-xl border border-line bg-white p-5 shadow-xs">
+            <div key={o.id} className="rounded-xl border border-line bg-white shadow-panel p-5">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-3">
@@ -701,7 +857,7 @@ function Users({ me }) {
   if (!rows.length) return <Empty text="No registered customers yet." />
 
   return (
-    <div className="overflow-hidden rounded-xl border border-line bg-white shadow-xs">
+    <div className="overflow-hidden rounded-xl border border-line bg-white shadow-panel">
       <div className="hidden grid-cols-[1fr_150px_110px_130px] gap-4 border-b border-line bg-[#F8FAFC] px-5 py-3 text-[13px] font-semibold uppercase tracking-[.06em] text-ink-mute lg:grid">
         <span>Customer</span>
         <span>Joined</span>
@@ -772,7 +928,7 @@ function Settings() {
 
   return (
     <div className="grid max-w-[900px] gap-6 lg:grid-cols-2">
-      <form onSubmit={save} className="rounded-xl border border-line bg-white p-6 shadow-xs">
+      <form onSubmit={save} className="rounded-xl border border-line bg-white shadow-panel p-6 shadow-xs">
         <h2 className="text-[17px] font-semibold">Store details</h2>
         <p className="mt-1 text-[14px] text-ink-soft">
           Shown in the storefront and on order confirmations.
@@ -793,7 +949,7 @@ function Settings() {
         </button>
       </form>
 
-      <div className="rounded-xl border border-line bg-white p-6 shadow-xs">
+      <div className="rounded-xl border border-line bg-white shadow-panel p-6 shadow-xs">
         <div className="flex items-start gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-wash text-brand-700">
             <Lock className="h-[19px] w-[19px]" />
@@ -857,7 +1013,7 @@ function Field({ label, value, onChange, type = 'text', required }) {
         required={required}
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg border border-line bg-white px-4 py-2.5 text-[15px] outline-none focus:border-brand-700"
+        className="rounded-lg border border-line bg-white shadow-panel px-4 py-2.5 text-[15px] outline-none focus:border-brand-700"
       />
     </label>
   )

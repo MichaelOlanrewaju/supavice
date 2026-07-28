@@ -159,7 +159,7 @@ export default function Shop() {
                 name="price"
                 checked={band === b.id}
                 onChange={() => setBand(b.id)}
-                className="w-3.5 h-3.5 accent-[#0077A3]"
+                className="w-3.5 h-3.5 accent-[#00668C]"
               />
               {b.label}
             </label>
@@ -204,7 +204,7 @@ export default function Shop() {
             type="checkbox"
             checked={inStock}
             onChange={(e) => setInStock(e.target.checked)}
-            className="w-4 h-4 accent-[#0077A3]"
+            className="w-4 h-4 accent-[#00668C]"
           />
           In stock only
         </label>
@@ -213,7 +213,7 @@ export default function Shop() {
             type="checkbox"
             checked={pomOnly}
             onChange={(e) => setPomOnly(e.target.checked)}
-            className="w-4 h-4 accent-[#0077A3]"
+            className="w-4 h-4 accent-[#00668C]"
           />
           Prescription only (℞)
         </label>
@@ -222,7 +222,7 @@ export default function Shop() {
             type="checkbox"
             checked={filter === 'deal'}
             onChange={(e) => setParam('filter', e.target.checked ? 'deal' : '')}
-            className="w-4 h-4 accent-[#0077A3]"
+            className="w-4 h-4 accent-[#00668C]"
           />
           On offer
         </label>

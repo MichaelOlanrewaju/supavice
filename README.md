@@ -135,7 +135,7 @@ URL-driven shop filters, all shareable:
 | Role    | Face             | Why                                                     |
 | ------- | ---------------- | ------------------------------------------------------- |
 | Display | **Clash Display** | Tight geometric sans with real character in the counters |
-| Body    | **Satoshi**       | Refined grotesque, holds up at 13px on product cards     |
+| Body    | **Jost**          | Geometric sans, clean and modern on product names        |
 | Numeric | **JetBrains Mono**| Prices, SKUs, metadata — true tabular figures            |
 
 Served from Fontshare. The scale lives in `tailwind.config.js` as `text-display-xl/lg/md/sm`, with
@@ -148,11 +148,11 @@ Colours sampled directly from the logo PNG.
 
 | Token       | Hex       | Use                                              |
 | ----------- | --------- | ------------------------------------------------ |
-| `brand`     | `#00CCFF` | Logo cyan — accents, highlights, hover borders    |
-| `brand-700` | `#0077A3` | Text, links, primary buttons (4.78:1 on white)    |
-| `brand-800` | `#005E82` | Pressed-button shadow                             |
-| `rx`        | `#FF0000` | Logo red — ℞ badges, discount tags                |
-| `rx-600`    | `#D40000` | Red CTAs (5.53:1 with white text)                 |
+| `brand`     | `#0090C4` | Deep Ocean cyan — accents, highlights, hover borders |
+| `brand-700` | `#00668C` | Text, links, primary buttons (6.40:1 on white)    |
+| `brand-800` | `#004866` | Pressed-button shadow, footer background          |
+| `rx`        | `#E01818` | Deep red — ℞ badges, discount tags                |
+| `rx-600`    | `#C21414` | Red CTAs (6.17:1 with white text)                 |
 | `ink`       | `#071A2E` | Body text                                         |
 | `paper`     | `#F6F9FC` | Page background                                   |
 
