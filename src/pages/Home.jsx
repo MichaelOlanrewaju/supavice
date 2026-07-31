@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import PromoSlider from '../components/PromoSlider'
 import ProductCarousel from '../components/ProductCarousel'
 import ProductSpotlight from '../components/ProductSpotlight'
+import GoogleReviews from '../components/GoogleReviews'
 import CategoryMosaic from '../components/CategoryMosaic'
 import ProductCard from '../components/ProductCard'
 import { SectionHead, Faq } from '../components/Bits'
@@ -273,6 +274,15 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ---------- reviews ---------- */}
+      <section className="mx-auto max-w-[1280px] px-6 pb-section-sm">
+        <div className="mb-6 max-w-[46ch]">
+          <div className="eyebrow">What people say</div>
+          <h2 className="mt-3 font-display text-display-md">Real reviews, straight from Google</h2>
+        </div>
+        <GoogleReviews />
       </section>
 
       {/* ---------- faq ---------- */}

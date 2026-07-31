@@ -303,7 +303,8 @@ function Products() {
   useEffect(() => setPage(0), [q, catFilter, sort])
 
   const toggle = async (p, field) => {
-    await supabase.from('products').update({ [field]: !p[field] }).eq('id', p.id)
+    const { error } = await supabase.from('products').update({ [field]: !p[field] }).eq('id', p.id)
+    if (error) return alert(`Could not update "${p.name}":\n${error.message}`)
     load()
   }
 
@@ -314,20 +315,28 @@ function Products() {
       )
     )
       return
-    await supabase.from('products').delete().eq('id', p.id)
+    const { error } = await supabase.from('products').delete().eq('id', p.id)
+    if (error) {
+      alert(
+        `Could not delete "${p.name}":\n${error.message}\n\nIf this mentions a policy or permission, the admin write policy on products may need to be re-applied — see supabase/migrations/0005_fix_products_rls.sql.`
+      )
+      return
+    }
     load()
   }
 
   const bulkHide = async (active) => {
     if (!selected.size) return
-    await supabase.from('products').update({ active }).in('id', [...selected])
+    const { error } = await supabase.from('products').update({ active }).in('id', [...selected])
+    if (error) return alert(`Could not update those products:\n${error.message}`)
     load()
   }
 
   const bulkDelete = async () => {
     if (!selected.size) return
     if (!confirm(`Delete ${selected.size} product(s)? This cannot be undone.`)) return
-    await supabase.from('products').delete().in('id', [...selected])
+    const { error } = await supabase.from('products').delete().in('id', [...selected])
+    if (error) return alert(`Could not delete those products:\n${error.message}`)
     load()
   }
 
@@ -713,17 +722,19 @@ function Orders() {
   }, [load])
 
   const setStatus = async (o, status) => {
-    await supabase.from('orders').update({ status }).eq('id', o.id)
+    const { error } = await supabase.from('orders').update({ status }).eq('id', o.id)
+    if (error) return alert(`Could not update order status:\n${error.message}`)
     load()
   }
 
   const setFee = async (o) => {
     const v = prompt(`Delivery fee for ${o.order_no} (₦). Leave blank to clear.`, o.delivery_fee ?? '')
     if (v === null) return
-    await supabase
+    const { error } = await supabase
       .from('orders')
       .update({ delivery_fee: v.trim() === '' ? null : Number(v) })
       .eq('id', o.id)
+    if (error) return alert(`Could not set delivery fee:\n${error.message}`)
     load()
   }
 
@@ -849,7 +860,8 @@ function Users({ me }) {
 
   const setRole = async (u, role) => {
     if (u.id === me?.id) return alert('You cannot change your own role.')
-    await supabase.from('profiles').update({ role }).eq('id', u.id)
+    const { error } = await supabase.from('profiles').update({ role }).eq('id', u.id)
+    if (error) return alert(`Could not update role:\n${error.message}`)
     load()
   }
 

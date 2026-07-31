@@ -5,6 +5,7 @@ import { formatNaira } from '../data/catalog'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import GoogleReviews from '../components/GoogleReviews'
 
 const steps = ['Delivery', 'Payment', 'Review']
 
@@ -42,6 +43,7 @@ export default function Checkout() {
   const [done, setDone] = useState(false)
   const orderNoFallback = 'SUP-' + Math.floor(10000 + Math.random() * 89999)
   const [placedNo, setPlacedNo] = useState(null)
+  const [paidOk, setPaidOk] = useState(null) // null = pickup/no-payment path, true/false = payment attempted
   const orderNo = placedNo || orderNoFallback
   const navigate = useNavigate()
   const { user, profile } = useAuth()
@@ -101,6 +103,13 @@ export default function Checkout() {
           </div>
 
           <div className="p-7">
+            {paidOk && (
+              <p className="mb-5 flex items-center gap-2 rounded-sm border border-brand/25 bg-brand-wash px-4 py-3 text-[13px] font-semibold text-brand-800">
+                <Check className="h-4 w-4 shrink-0" />
+                Payment confirmed
+              </p>
+            )}
+
             <p className="text-[15px] text-ink-soft leading-relaxed mb-6">
               {hasPom
                 ? 'A pharmacist is reviewing your prescription now. You will get a message confirming the final price before your card is charged, usually within 30 minutes.'
@@ -151,6 +160,7 @@ export default function Checkout() {
     /* Without Supabase configured, the flow still completes so the
        storefront is usable during development, but nothing is charged. */
     if (!supabase) {
+      setPaidOk(false)
       setDone(true)
       clear()
       window.scrollTo({ top: 0 })
@@ -198,6 +208,13 @@ export default function Checkout() {
       if (itemErr) throw itemErr
 
       setPlacedNo(order.order_no)
+
+      /* Fire-and-forget — the admin notification must never block or fail
+         the checkout itself. If email isn't configured yet, the function
+         just skips quietly (see notify-admin-order/index.ts). */
+      supabase.functions
+        .invoke('notify-admin-order', { body: { orderNo: order.order_no } })
+        .catch(() => {})
     } catch (e) {
       setSaving(false)
       setSaveError(e.message || 'We could not save your order. Please try again or call us.')
@@ -208,14 +225,20 @@ export default function Checkout() {
        online payment, or Paystack genuinely not configured, finish here —
        the order is real, just not marked paid. */
     const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY
+    console.log(
+      '[checkout] Paystack key present:',
+      Boolean(paystackKey),
+      paystackKey ? paystackKey.slice(0, 12) + '…' : '(none)'
+    )
     if (!paystackKey) {
+      /* Do NOT mark the order complete here — that would show a screen
+         indistinguishable from a real paid confirmation. Keep the customer
+         on the checkout page with a visible error instead. */
       setSaving(false)
       setSaveError(
-        'Payment is not fully set up yet — your order was saved, but nothing has been charged. We will contact you to arrange payment.'
+        `Payment could not be started (order ${orderNo} was saved, but is unpaid). ` +
+          'Please call or WhatsApp us on +234 813 811 2519 to arrange payment — do not assume this order is confirmed.'
       )
-      setDone(true)
-      clear()
-      window.scrollTo({ top: 0 })
       return
     }
 
@@ -224,6 +247,7 @@ export default function Checkout() {
        Wait briefly for it rather than assuming it's missing and silently
        skipping payment. */
     const paystackReady = await waitForPaystack(4000)
+    console.log('[checkout] Paystack script loaded:', paystackReady)
     if (!paystackReady) {
       setSaving(false)
       setSaveError(
@@ -232,30 +256,55 @@ export default function Checkout() {
       return
     }
 
-    const handler = window.PaystackPop.setup({
-      key: paystackKey,
-      email: form.email,
-      amount: subtotal * 100, // Paystack expects kobo
-      ref: orderNo + '-' + Date.now(),
-      currency: 'NGN',
-      channels:
-        form.pay === 'card' ? ['card'] : form.pay === 'transfer' ? ['bank_transfer'] : ['ussd'],
-      callback: (response) => {
-        // Runs after Paystack reports success client-side. This alone is
-        // never trusted for something involving money — verifyPayment()
-        // re-checks the transaction on the server before marking it paid.
-        verifyPayment(response.reference, orderNo)
-      },
-      onClose: () => {
-        setSaving(false)
-        setSaveError(
-          'Payment was not completed. Your order is saved as unpaid — you can try again, or we can arrange payment another way. Order ' +
-            orderNo +
-            '.'
-        )
-      },
-    })
-    handler.openIframe()
+    if (!subtotal || subtotal <= 0) {
+      setSaving(false)
+      setSaveError('Your order total is ₦0 — nothing to charge. Refresh and try again.')
+      return
+    }
+
+    /* PaystackPop.setup / openIframe can throw synchronously — a malformed
+       key, a popup blocker, a bad parameter. Uncaught, that leaves the
+       button stuck on "Placing order..." with nothing visible happening,
+       which is exactly what looks like "the popup isn't working." Wrap it
+       so a real error always surfaces. */
+    try {
+      const handler = window.PaystackPop.setup({
+        key: paystackKey,
+        email: form.email,
+        amount: Math.round(subtotal * 100), // Paystack expects kobo
+        ref: orderNo + '-' + Date.now(),
+        currency: 'NGN',
+        channels:
+          form.pay === 'card' ? ['card'] : form.pay === 'transfer' ? ['bank_transfer'] : ['ussd'],
+        callback: (response) => {
+          // Runs after Paystack reports success client-side. This alone is
+          // never trusted for something involving money — verifyPayment()
+          // re-checks the transaction on the server before marking it paid.
+          verifyPayment(response.reference, orderNo)
+        },
+        onClose: () => {
+          setSaving(false)
+          setPaidOk(false)
+          setSaveError(
+            'Payment was not completed. Your order is saved as unpaid — you can try again, or we can arrange payment another way. Order ' +
+              orderNo +
+              '.'
+          )
+        },
+      })
+      handler.openIframe()
+    } catch (e) {
+      console.error('Paystack setup failed:', e)
+      setSaving(false)
+      setPaidOk(false)
+      setSaveError(
+        'The payment window could not open (' +
+          (e.message || 'unknown error') +
+          '). Your order ' +
+          orderNo +
+          ' is saved as unpaid — please call or WhatsApp +234 813 811 2519.'
+      )
+    }
   }
 
   const verifyPayment = async (reference, orderNo) => {
@@ -267,15 +316,20 @@ export default function Checkout() {
         throw new Error(data?.error || error.message)
       }
       setSaving(false)
+      setPaidOk(true)
       setDone(true)
       clear()
       window.scrollTo({ top: 0 })
     } catch (e) {
+      /* Payment could not be confirmed server-side. Do not show the normal
+         success screen — this needs the customer's attention, not a
+         checkmark that looks identical to a completed order. */
       setSaving(false)
+      setPaidOk(false)
       setSaveError(
-        'Payment went through but we could not confirm it automatically. Your order (' +
+        'We could not confirm your payment automatically. Order ' +
           orderNo +
-          ') is saved — call us and we will sort it out. ' +
+          ' is saved as unpaid — please call or WhatsApp +234 813 811 2519 before assuming it went through. ' +
           (e.message || '')
       )
     }
@@ -385,7 +439,29 @@ export default function Checkout() {
                         className="bg-paper border-[1.5px] border-line rounded-sm px-4 py-3 text-sm outline-none focus:border-brand-700"
                       >
                         <option value="">Choose your area</option>
-                        {['Ikorodu', 'Lekki', 'Victoria Island', 'Ikeja', 'Surulere', 'Yaba', 'Festac', 'Ajah', 'Maryland', 'Outside Lagos'].map(
+                        {[
+                          'Agege',
+                          'Ajeromi-Ifelodun',
+                          'Alimosho',
+                          'Amuwo-Odofin',
+                          'Apapa',
+                          'Badagry',
+                          'Epe',
+                          'Eti-Osa (Lekki/VI)',
+                          'Ibeju-Lekki',
+                          'Ifako-Ijaiye',
+                          'Ikeja',
+                          'Ikorodu',
+                          'Kosofe',
+                          'Lagos Island',
+                          'Lagos Mainland',
+                          'Mushin',
+                          'Ojo',
+                          'Oshodi-Isolo',
+                          'Shomolu',
+                          'Surulere',
+                          'Outside Lagos',
+                        ].map(
                           (a) => (
                             <option key={a} value={a}>
                               {a}
@@ -620,6 +696,14 @@ export default function Checkout() {
               Edit cart
             </Link>
           </aside>
+
+          <div className="lg:hidden">
+            <GoogleReviews compact />
+          </div>
+        </div>
+
+        <div className="hidden lg:block lg:max-w-[520px]">
+          <GoogleReviews compact />
         </div>
       </div>
     </>
