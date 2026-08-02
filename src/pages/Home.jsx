@@ -286,24 +286,29 @@ export default function Home() {
       </section>
 
       {/* ---------- faq ---------- */}
-      <section className="mx-auto max-w-[1280px] px-6 pb-section">
-        <div className="grid items-start gap-12 lg:grid-cols-[.8fr_1.2fr]">
-          <div>
-            <div className="eyebrow">Before you order</div>
-            <h2 className="my-4 font-display text-display-md">
-              Questions we get
-              <br />
-              every day
-            </h2>
-            <p className="max-w-[38ch] text-[15px] text-ink-soft">
-              Still stuck? Call{' '}
-              <a href="tel:+2348138112519" className="font-semibold text-brand-700 hover:underline">
+      <section className="border-t border-line bg-paper py-section">
+        <div className="mx-auto max-w-[1280px] px-6">
+          <div className="grid items-start gap-12 lg:grid-cols-[.75fr_1.25fr]">
+            <div className="lg:sticky lg:top-28">
+              <div className="eyebrow">Before you order</div>
+              <h2 className="my-4 font-display text-display-md">
+                Questions we get
+                <br />
+                every day
+              </h2>
+              <p className="max-w-[38ch] text-[15px] leading-relaxed text-ink-soft">
+                Can't find what you're after here? Call and a real person picks up.
+              </p>
+              <a
+                href="tel:+2348138112519"
+                className="btn-primary mt-6 inline-flex w-fit"
+              >
+                <Chat className="h-[17px] w-[17px]" />
                 +234 813 811 2519
-              </a>{' '}
-              and a person picks up.
-            </p>
+              </a>
+            </div>
+            <Faq items={faqs} />
           </div>
-          <Faq items={faqs} />
         </div>
       </section>
     </>

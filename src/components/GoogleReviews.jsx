@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { Star } from './Icons'
+import { testimonials } from '../data/testimonials'
+import { Star, ChevLeft, ChevRight } from './Icons'
 
 const FALLBACK_MAPS_URL =
   'https://maps.google.com/maps?vet=10CAAQoqAOahcKEwiYppSVrPWVAxUAAAAAHQAAAAAQEA..i&pvq=Cg0vZy8xMXl6OG1iamNxIhcKEXN1cGF2aWNlIHBoYXJtYWN5EAIYAw&lqi=ChFzdXBhdmljZSBwaGFybWFjeUj2gtWJ-b2AgAhaIxAAEAEYABgBIhFzdXBhdmljZSBwaGFybWFjeSoGCAIQABABkgEIcGhhcm1hY3k&fvr=1&cs=0&um=1&ie=UTF-8&fb=1&gl=ng&sa=X&ftid=0x103b97285a548eef:0x595158c21e2a5c5a'
@@ -15,38 +16,56 @@ const GoogleG = (p) => (
 )
 
 /**
- * Shows real reviews pulled from the store's Google Business listing via a
- * server-side Edge Function. If that isn't configured yet, this shows a
- * plain link to the real Google listing instead — never invented ratings,
- * review counts, or quotes.
+ * Reviews, in order of preference:
+ *   1. Live Google Places API, once GOOGLE_PLACES_API_KEY is configured
+ *      (see GOOGLE_REVIEWS_SETUP.md) — real, always current.
+ *   2. Hand-picked reviews copied into src/data/testimonials.js — real,
+ *      but needs manual updates.
+ *   3. A plain "read our reviews on Google" link — used when neither of the
+ *      above has anything, so nothing fabricated ever shows.
+ *
+ * Once the API key is set up, step 1 takes over automatically and the
+ * manual list in step 2 quietly becomes unused — no further code changes
+ * needed.
  */
 export default function GoogleReviews({ compact = false }) {
-  const [state, setState] = useState('loading') // loading | ok | unconfigured | error
-  const [data, setData] = useState(null)
+  const [state, setState] = useState('loading') // loading | live | manual | link
+  const [live, setLive] = useState(null)
+  const trackRef = useRef(null)
 
   useEffect(() => {
     let alive = true
-    if (!supabase) {
-      setState('unconfigured')
-      return
-    }
+    if (!supabase) return fallThrough()
+
     supabase.functions
       .invoke('google-reviews')
       .then(({ data: res, error }) => {
         if (!alive) return
-        if (error || !res) return setState('unconfigured')
-        if (!res.configured) return setState('unconfigured')
-        if (res.error) return setState('unconfigured')
-        setData(res)
-        setState('ok')
+        if (error || !res || !res.configured || res.error || !res.reviews?.length) {
+          return fallThrough()
+        }
+        setLive(res)
+        setState('live')
       })
-      .catch(() => alive && setState('unconfigured'))
+      .catch(() => alive && fallThrough())
+
+    function fallThrough() {
+      if (!alive) return
+      setState(testimonials.length ? 'manual' : 'link')
+    }
+
     return () => {
       alive = false
     }
   }, [])
 
-  const mapsUrl = data?.mapsUrl || FALLBACK_MAPS_URL
+  const mapsUrl = live?.mapsUrl || FALLBACK_MAPS_URL
+
+  const scrollBy = (dir) => {
+    const el = trackRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * (el.clientWidth * 0.85), behavior: 'smooth' })
+  }
 
   if (state === 'loading') {
     return (
@@ -58,8 +77,7 @@ export default function GoogleReviews({ compact = false }) {
     )
   }
 
-  // Honest fallback: no fabricated numbers, just a real link to real reviews.
-  if (state === 'unconfigured' || state === 'error' || !data?.reviews?.length) {
+  if (state === 'link') {
     return (
       <a
         href={mapsUrl}
@@ -77,8 +95,21 @@ export default function GoogleReviews({ compact = false }) {
     )
   }
 
+  // normalize both sources into the same shape so the rest of the UI
+  // doesn't need to know which one it's showing
+  const reviews =
+    state === 'live'
+      ? live.reviews.map((r) => ({
+          author: r.author,
+          photo: r.photo,
+          rating: r.rating,
+          text: r.text,
+          date: r.relativeTime,
+        }))
+      : testimonials
+
   if (compact) {
-    const first = data.reviews[0]
+    const first = reviews[0]
     return (
       <a
         href={mapsUrl}
@@ -88,14 +119,17 @@ export default function GoogleReviews({ compact = false }) {
       >
         <div className="flex items-center gap-2">
           <GoogleG className="h-5 w-5 shrink-0" />
-          {data.rating && (
+          {state === 'live' && live.rating && (
             <span className="flex items-center gap-1 text-[13.5px] font-semibold">
-              {data.rating.toFixed(1)}
+              {live.rating.toFixed(1)}
               <Star className="h-3.5 w-3.5 fill-current text-accent" />
             </span>
           )}
-          {data.reviewCount && (
-            <span className="text-[12.5px] text-ink-mute">({data.reviewCount} reviews)</span>
+          {state === 'live' && live.reviewCount && (
+            <span className="text-[12.5px] text-ink-mute">({live.reviewCount} reviews)</span>
+          )}
+          {state === 'manual' && (
+            <span className="text-[13px] font-semibold text-ink-soft">What people say</span>
           )}
         </div>
         {first?.text && (
@@ -108,70 +142,103 @@ export default function GoogleReviews({ compact = false }) {
   }
 
   return (
-    <div className="rounded-md border border-line bg-white p-6 sm:p-7">
-      <div className="mb-5 flex flex-wrap items-center gap-4">
-        <GoogleG className="h-8 w-8 shrink-0" />
-        {data.rating && (
-          <div className="flex items-center gap-2">
-            <span className="font-display text-[24px] font-semibold tracking-[-.02em]">
-              {data.rating.toFixed(1)}
-            </span>
-            <div className="flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-4 w-4 ${
-                    i < Math.round(data.rating) ? 'fill-current text-accent' : 'text-line'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-        {data.reviewCount && (
-          <span className="text-[13.5px] text-ink-soft">{data.reviewCount} Google reviews</span>
-        )}
-        <a
-          href={mapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="ml-auto text-[13px] font-semibold text-brand-700 hover:underline"
-        >
-          See all on Google
-        </a>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {data.reviews.slice(0, 6).map((r, i) => (
-          <div key={i} className="rounded-sm border border-line bg-paper p-4">
-            <div className="flex items-center gap-2.5">
-              {r.photo ? (
-                <img src={r.photo} alt="" className="h-8 w-8 rounded-full object-cover" />
-              ) : (
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-wash text-[12px] font-bold text-brand-700">
-                  {r.author.charAt(0).toUpperCase()}
-                </span>
-              )}
-              <div className="min-w-0">
-                <b className="block truncate text-[12.5px] font-semibold">{r.author}</b>
-                <span className="text-[11px] text-ink-mute">{r.relativeTime}</span>
+    <div>
+      {state === 'live' && (
+        <div className="mb-5 flex flex-wrap items-center gap-4">
+          <GoogleG className="h-8 w-8 shrink-0" />
+          {live.rating && (
+            <div className="flex items-center gap-2">
+              <span className="font-display text-[24px] font-semibold tracking-[-.02em]">
+                {live.rating.toFixed(1)}
+              </span>
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      i < Math.round(live.rating) ? 'fill-current text-accent' : 'text-line'
+                    }`}
+                  />
+                ))}
               </div>
             </div>
-            <div className="mt-2 flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, n) => (
-                <Star
-                  key={n}
-                  className={`h-3 w-3 ${n < r.rating ? 'fill-current text-accent' : 'text-line'}`}
-                />
-              ))}
+          )}
+          {live.reviewCount && (
+            <span className="text-[13.5px] text-ink-soft">{live.reviewCount} Google reviews</span>
+          )}
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto text-[13px] font-semibold text-brand-700 hover:underline"
+          >
+            See all on Google
+          </a>
+        </div>
+      )}
+
+      <div className="relative">
+        <div ref={trackRef} className="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth pb-1">
+          {reviews.slice(0, 8).map((r, i) => (
+            <div
+              key={i}
+              className="w-[260px] shrink-0 rounded-md border border-line bg-white p-4 sm:w-[300px] sm:p-5"
+            >
+              <div className="flex items-center gap-2.5">
+                {r.photo ? (
+                  <img src={r.photo} alt="" className="h-8 w-8 rounded-full object-cover" />
+                ) : (
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-wash text-[12px] font-bold text-brand-700">
+                    {r.author.charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <b className="block truncate text-[12.5px] font-semibold">{r.author}</b>
+                  {r.date && <span className="text-[11px] text-ink-mute">{r.date}</span>}
+                </div>
+                <GoogleG className="h-4 w-4 shrink-0 opacity-70" />
+              </div>
+              <div className="mt-2.5 flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, n) => (
+                  <Star
+                    key={n}
+                    className={`h-3 w-3 ${n < r.rating ? 'fill-current text-accent' : 'text-line'}`}
+                  />
+                ))}
+              </div>
+              {r.text && (
+                <p className="mt-2 line-clamp-5 text-[12.5px] leading-relaxed text-ink-soft">
+                  "{r.text}"
+                </p>
+              )}
             </div>
-            {r.text && (
-              <p className="mt-2 line-clamp-4 text-[12.5px] leading-relaxed text-ink-soft">
-                {r.text}
-              </p>
-            )}
-          </div>
-        ))}
+          ))}
+
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-[180px] shrink-0 flex-col items-center justify-center gap-3 rounded-md border border-dashed border-line bg-paper p-5 text-center transition-colors hover:border-brand-700"
+          >
+            <GoogleG className="h-7 w-7" />
+            <span className="text-[13px] font-semibold text-brand-700">See more on Google</span>
+          </a>
+        </div>
+
+        <button
+          onClick={() => scrollBy(-1)}
+          aria-label="Previous reviews"
+          className="absolute -left-4 top-1/2 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-white shadow-xs transition-colors hover:border-brand-700 lg:grid"
+        >
+          <ChevLeft className="h-4 w-4" />
+        </button>
+        <button
+          onClick={() => scrollBy(1)}
+          aria-label="More reviews"
+          className="absolute -right-4 top-1/2 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-line bg-white shadow-xs transition-colors hover:border-brand-700 lg:grid"
+        >
+          <ChevRight className="h-4 w-4" />
+        </button>
       </div>
     </div>
   )

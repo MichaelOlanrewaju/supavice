@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Arrow } from './Icons'
+import { Arrow, Plus } from './Icons'
 
 export function SectionHead({ eyebrow, title, sub, linkTo, linkLabel }) {
   return (
@@ -42,22 +42,51 @@ export function PageHead({ eyebrow, title, sub, children }) {
 export function Faq({ items }) {
   const [open, setOpen] = useState(0)
   return (
-    <div>
-      {items.map((f, i) => (
-        <div key={f.q} className="faq-item">
-          <button
-            className="faq-q"
-            onClick={() => setOpen(open === i ? -1 : i)}
-            aria-expanded={open === i}
+    <div className="grid gap-3">
+      {items.map((f, i) => {
+        const isOpen = open === i
+        return (
+          <div
+            key={f.q}
+            className={`overflow-hidden rounded-md border bg-white transition-colors duration-200 ${
+              isOpen ? 'border-brand-700' : 'border-line'
+            }`}
           >
-            {f.q}
-            <span className={`faq-sign ${open === i ? 'rotate-45' : ''}`}>+</span>
-          </button>
-          {open === i && (
-            <p className="pb-5 text-[14.5px] text-ink-soft max-w-[64ch]">{f.a}</p>
-          )}
-        </div>
-      ))}
+            <button
+              onClick={() => setOpen(isOpen ? -1 : i)}
+              aria-expanded={isOpen}
+              className="flex w-full items-center justify-between gap-5 px-5 py-4 text-left sm:px-6 sm:py-5"
+            >
+              <span
+                className={`text-[15px] font-semibold leading-snug tracking-[-.005em] transition-colors ${
+                  isOpen ? 'text-brand-700' : 'text-ink'
+                }`}
+              >
+                {f.q}
+              </span>
+              <span
+                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border transition-all duration-300 ${
+                  isOpen
+                    ? 'rotate-45 border-brand-700 bg-brand-700 text-white'
+                    : 'border-line bg-paper text-ink-soft'
+                }`}
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </span>
+            </button>
+            <div
+              className="grid transition-all duration-300 ease-smooth"
+              style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
+            >
+              <div className="overflow-hidden">
+                <p className="max-w-[64ch] px-5 pb-5 text-[14.5px] leading-relaxed text-ink-soft sm:px-6">
+                  {f.a}
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

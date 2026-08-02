@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { banners, formatNaira, products } from '../data/catalog'
 import { Arrow, ChevLeft, ChevRight } from './Icons'
 
-const DURATION = 6500
+const DURATION = 4000
 
 export default function PromoSlider() {
   const [i, setI] = useState(0)
@@ -112,9 +112,8 @@ export default function PromoSlider() {
 
   return (
     <section className="mx-auto max-w-[1280px] px-6 pb-2 pt-6">
-      <div className="grid gap-4 lg:grid-cols-[1fr_292px]">
-        {/* ---------- main slider ---------- */}
-        <div
+      {/* ---------- main slider ---------- */}
+      <div
           className="group/slider overflow-hidden rounded-lg bg-white"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
@@ -134,7 +133,7 @@ export default function PromoSlider() {
               <div
                 key={bn.id}
                 aria-hidden={n !== i}
-                className={`absolute inset-0 transition-opacity duration-500 ${
+                className={`absolute inset-0 transition-opacity duration-300 ${
                   n === i ? 'opacity-100' : 'pointer-events-none opacity-0'
                 }`}
               >
@@ -222,44 +221,6 @@ export default function PromoSlider() {
             <Copy compact />
           </div>
         </div>
-
-        {/* ---------- side promos ---------- */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-          <Link
-            to="/best-value"
-            className="group relative flex min-h-[150px] flex-col justify-between overflow-hidden rounded-md bg-rx p-6 text-white transition-all hover:brightness-110"
-          >
-            <div className="relative">
-              <span className="font-mono text-[11px] uppercase tracking-[.13em] opacity-80">Always on</span>
-              <h3 className="mt-2 font-display text-[26px] font-semibold leading-tight">Best value</h3>
-              <p className="mt-2 max-w-[26ch] text-[13px] text-white/80">
-                The lowest price we stock in every aisle.
-              </p>
-            </div>
-            <span className="relative mt-5 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[.09em]">
-              Shop now
-              <Arrow className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-            </span>
-          </Link>
-
-          <Link
-            to="/delivery-returns"
-            className="group relative flex min-h-[150px] flex-col justify-between overflow-hidden rounded-md border border-line bg-white p-6 transition-colors hover:border-brand-700"
-          >
-            <div className="relative">
-              <span className="font-mono text-[11px] uppercase tracking-[.13em] text-brand-700">Every day</span>
-              <h3 className="mt-2 font-display text-[26px] font-semibold leading-tight">Same-day Lagos</h3>
-              <p className="mt-2 max-w-[28ch] text-[13px] text-ink-soft">
-                Order before 16:00 and most Lagos deliveries arrive the same day.
-              </p>
-            </div>
-            <span className="relative mt-5 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[.09em] text-brand-700">
-              See details
-              <Arrow className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-            </span>
-          </Link>
-        </div>
-      </div>
     </section>
   )
 }
