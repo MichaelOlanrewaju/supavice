@@ -15,15 +15,17 @@ import {
   Lock,
   Logout,
   Menu,
+  Doc,
 } from '../components/Icons'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
-import { formatNaira, categories } from '../data/catalog'
+import { formatNaira, fetchCategories } from '../data/catalog'
 
 const NAV = [
   ['overview', 'Dashboard', Home],
   ['products', 'Products', Box],
   ['orders', 'Orders', Cart],
+  ['blog', 'Blog', Doc],
   ['users', 'Customers', UsersIcon],
   ['settings', 'Settings', Cog],
 ]
@@ -155,6 +157,7 @@ export default function Admin() {
           {tab === 'overview' && <Overview onJump={setTab} />}
           {tab === 'products' && <Products />}
           {tab === 'orders' && <Orders />}
+          {tab === 'blog' && <BlogAdmin />}
           {tab === 'users' && <Users me={profile} />}
           {tab === 'settings' && <Settings />}
         </main>
@@ -271,7 +274,12 @@ function Products() {
   const [editing, setEditing] = useState(null)
   const [page, setPage] = useState(0)
   const [selected, setSelected] = useState(new Set())
+  const [categories, setCategories] = useState([])
   const PER = 20
+
+  useEffect(() => {
+    fetchCategories().then(setCategories)
+  }, [])
 
   const load = useCallback(async () => {
     if (!supabase) return
@@ -1047,3 +1055,282 @@ const Empty = ({ text }) => (
     <p className="text-[15px] text-ink-soft">{text}</p>
   </div>
 )
+
+/* -------------------------------------------------------------------- blog */
+
+const emptyPost = {
+  id: null,
+  slug: '',
+  title: '',
+  excerpt: '',
+  content: '',
+  cover_image: '',
+  tags: '',
+  related_products: '',
+  published: false,
+  author: 'Supavice Pharmacy',
+}
+
+function BlogAdmin() {
+  const [rows, setRows] = useState(null)
+  const [editing, setEditing] = useState(null)
+
+  const load = useCallback(async () => {
+    if (!supabase) return
+    const { data } = await supabase
+      .from('blog_posts')
+      .select('id, slug, title, published, created_at, tags')
+      .order('created_at', { ascending: false })
+    setRows(data || [])
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const togglePublish = async (p) => {
+    const { error } = await supabase
+      .from('blog_posts')
+      .update({ published: !p.published })
+      .eq('id', p.id)
+    if (error) return alert(`Could not update "${p.title}":\n${error.message}`)
+    load()
+  }
+
+  const remove = async (p) => {
+    if (!confirm(`Delete "${p.title}"? This cannot be undone.`)) return
+    const { error } = await supabase.from('blog_posts').delete().eq('id', p.id)
+    if (error) return alert(`Could not delete "${p.title}":\n${error.message}`)
+    load()
+  }
+
+  return (
+    <div className="grid gap-4">
+      <div className="flex items-center justify-between">
+        <p className="text-[13.5px] text-ink-soft">
+          {rows === null ? 'Loading…' : `${rows.length} article${rows.length === 1 ? '' : 's'}`}
+        </p>
+        <button
+          onClick={() => setEditing({ ...emptyPost })}
+          className="flex items-center gap-2 rounded-lg bg-brand-700 px-5 py-3 text-[14.5px] font-bold text-white shadow-xs transition-colors hover:bg-brand-800"
+        >
+          <Plus className="h-[18px] w-[18px]" />
+          Write article
+        </button>
+      </div>
+
+      {rows === null ? (
+        <Skeleton rows={4} />
+      ) : rows.length === 0 ? (
+        <Empty text="No articles yet — write your first one." />
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-line bg-white shadow-panel">
+          <div className="divide-y divide-line">
+            {rows.map((p) => (
+              <div key={p.id} className="flex flex-wrap items-center gap-4 px-5 py-3.5">
+                <div className="min-w-[220px] flex-1">
+                  <p className="text-[14.5px] font-semibold leading-snug">{p.title}</p>
+                  <p className="mt-0.5 font-mono text-[12px] text-ink-mute">/blog/{p.slug}</p>
+                </div>
+                <button
+                  onClick={() => togglePublish(p)}
+                  className={`rounded-full border px-3 py-1 text-[12.5px] font-semibold transition-colors ${
+                    p.published
+                      ? 'border-ok-border bg-ok-bg text-ok'
+                      : 'border-line bg-paper text-ink-mute'
+                  }`}
+                >
+                  {p.published ? 'Published' : 'Draft'}
+                </button>
+                <span className="text-[13px] text-ink-mute">
+                  {new Date(p.created_at).toLocaleDateString('en-NG')}
+                </span>
+                <div className="ml-auto flex items-center gap-4">
+                  <button
+                    onClick={() => setEditing(p)}
+                    className="text-[13px] font-semibold text-brand-700 hover:underline"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => remove(p)}
+                    aria-label="Delete"
+                    className="text-ink-mute transition-colors hover:text-rx"
+                  >
+                    <Trash className="h-[17px] w-[17px]" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {editing && (
+        <BlogEditor
+          post={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null)
+            load()
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+function BlogEditor({ post, onClose, onSaved }) {
+  const isNew = !post.id
+  const [form, setForm] = useState(
+    isNew
+      ? post
+      : {
+          ...post,
+          tags: (post.tags || []).join(', '),
+          related_products: (post.related_products || []).join(', '),
+        }
+  )
+  const [full, setFull] = useState(!isNew ? null : post) // full row, fetched for edit
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (isNew) return
+    supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('id', post.id)
+      .single()
+      .then(({ data }) => {
+        if (!data) return
+        setFull(data)
+        setForm({
+          ...data,
+          tags: (data.tags || []).join(', '),
+          related_products: (data.related_products || []).join(', '),
+        })
+      })
+  }, [post.id, isNew])
+
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
+
+  const save = async (e) => {
+    e.preventDefault()
+    setBusy(true)
+    setError('')
+    const slug =
+      form.slug?.trim() ||
+      form.title
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .slice(0, 80)
+    const payload = {
+      id: form.id || undefined,
+      slug,
+      title: form.title,
+      excerpt: form.excerpt || null,
+      content: form.content,
+      cover_image: form.cover_image || null,
+      tags: form.tags
+        ? form.tags.split(',').map((t) => t.trim()).filter(Boolean)
+        : [],
+      related_products: form.related_products
+        ? form.related_products.split(',').map((t) => t.trim()).filter(Boolean)
+        : [],
+      published: Boolean(form.published),
+      author: form.author || 'Supavice Pharmacy',
+    }
+    const { error } = await supabase.from('blog_posts').upsert(payload)
+    setBusy(false)
+    if (error) return setError(error.message)
+    onSaved()
+  }
+
+  if (!full && !isNew) {
+    return (
+      <div className="fixed inset-0 z-[100] grid place-items-center bg-ink/60 backdrop-blur-sm">
+        <div className="h-20 w-20 animate-shimmer rounded-xl bg-white" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] grid place-items-end bg-ink/60 backdrop-blur-sm sm:place-items-center sm:p-4">
+      <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-xl bg-white sm:max-w-[680px] sm:rounded-xl">
+        <div className="sticky top-0 flex items-center justify-between border-b border-line bg-white px-6 py-4">
+          <h2 className="font-display text-xl font-semibold">
+            {isNew ? 'Write article' : 'Edit article'}
+          </h2>
+          <button onClick={onClose} aria-label="Close" className="text-ink-soft hover:text-rx">
+            <Close className="h-5 w-5" />
+          </button>
+        </div>
+
+        <form onSubmit={save} className="grid gap-3 p-6">
+          <Field label="Title" value={form.title} onChange={(v) => set('title', v)} required />
+          <Field
+            label="URL slug (auto from title if left blank)"
+            value={form.slug || ''}
+            onChange={(v) => set('slug', v)}
+          />
+          <Field label="Excerpt (shown on the listing page)" value={form.excerpt || ''} onChange={(v) => set('excerpt', v)} />
+          <Field label="Cover image URL" value={form.cover_image || ''} onChange={(v) => set('cover_image', v)} />
+
+          <label className="grid gap-1.5">
+            <span className="font-mono text-[10.5px] uppercase tracking-[.12em] text-ink-soft">
+              Content (Markdown)
+            </span>
+            <textarea
+              required
+              rows={14}
+              value={form.content || ''}
+              onChange={(e) => set('content', e.target.value)}
+              className="rounded-sm border-[1.5px] border-line bg-white px-4 py-2.5 font-mono text-[13px] leading-relaxed outline-none focus:border-brand-700"
+              placeholder={'## A heading\n\nA paragraph of real, useful text...'}
+            />
+          </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label="Tags (comma separated)"
+              value={form.tags || ''}
+              onChange={(v) => set('tags', v)}
+            />
+            <Field
+              label="Related product IDs (comma separated)"
+              value={form.related_products || ''}
+              onChange={(v) => set('related_products', v)}
+            />
+          </div>
+
+          <label className="flex items-center gap-2.5 text-sm">
+            <input
+              type="checkbox"
+              checked={Boolean(form.published)}
+              onChange={(e) => set('published', e.target.checked)}
+              className="h-4 w-4 accent-[#0077A3]"
+            />
+            Published (visible on the site)
+          </label>
+
+          {error && (
+            <p className="rounded-sm border border-rx/25 bg-rx-wash px-4 py-3 text-[13px] text-rx-700">
+              {error}
+            </p>
+          )}
+
+          <div className="mt-2 flex gap-3">
+            <button type="submit" disabled={busy} className="btn-primary flex-1">
+              {busy ? 'Saving…' : 'Save article'}
+            </button>
+            <button type="button" onClick={onClose} className="btn-ghost">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}

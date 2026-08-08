@@ -3,17 +3,37 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import { SectionHead } from '../components/Bits'
 import { Bag, Doc, Heart, Check, Truck, Pin, Arrow } from '../components/Icons'
-import { findProduct, relatedTo, formatNaira, productImage, loadDescription } from '../data/catalog'
+import { fetchProduct, fetchRelated, formatNaira, productImage, loadDescription } from '../data/catalog'
 import { useCart } from '../context/CartContext'
 
 export default function Product() {
   const { id } = useParams()
-  const p = findProduct(id)
   const { add, toggleSave, isSaved } = useCart()
   const navigate = useNavigate()
   const [qty, setQty] = useState(1)
   const [showAll, setShowAll] = useState(false)
   const [desc, setDesc] = useState([])
+  const [added, setAdded] = useState(false)
+
+  const [p, setP] = useState(null)
+  const [pLoading, setPLoading] = useState(true)
+  const [related, setRelated] = useState([])
+
+  useEffect(() => {
+    let live = true
+    setPLoading(true)
+    setP(null)
+    setRelated([])
+    fetchProduct(id).then((prod) => {
+      if (!live) return
+      setP(prod)
+      setPLoading(false)
+      if (prod) fetchRelated(prod, 6).then((r) => live && setRelated(r))
+    })
+    return () => {
+      live = false
+    }
+  }, [id])
 
   useEffect(() => {
     let live = true
@@ -24,7 +44,14 @@ export default function Product() {
       live = false
     }
   }, [id])
-  const [added, setAdded] = useState(false)
+
+  if (pLoading) {
+    return (
+      <div className="mx-auto max-w-[1280px] px-6 py-24">
+        <div className="h-6 w-40 animate-shimmer rounded-sm bg-[linear-gradient(90deg,#F1F5F9_25%,#E4EBF2_50%,#F1F5F9_75%)] bg-[length:200%_100%]" />
+      </div>
+    )
+  }
 
   if (!p) {
     return (
@@ -39,7 +66,6 @@ export default function Product() {
   }
 
   const off = p.was ? Math.round(((p.was - p.price) / p.was) * 100) : 0
-  const related = relatedTo(p, 6)
   const saved = isSaved(p.id)
 
   const handleBuyNow = () => {

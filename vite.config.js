@@ -8,13 +8,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // The catalogue is large and changes independently of the app code.
-          // Splitting it means a product update does not bust the vendor cache,
-          // and vice versa.
+          // The catalogue snapshot is large and only used as an offline
+          // fallback now that data is live — keep it in its own chunk so it
+          // doesn't bloat the main bundle everyone downloads.
           if (id.includes('products.json')) return 'catalog'
-          if (id.includes('node_modules/react') || id.includes('node_modules/scheduler')) {
-            return 'react'
-          }
           if (id.includes('node_modules')) return 'vendor'
         },
       },

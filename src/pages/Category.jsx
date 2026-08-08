@@ -1,13 +1,39 @@
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { PageHead } from '../components/Bits'
 import ProductCard from '../components/ProductCard'
 import { Arrow } from '../components/Icons'
-import { categories, byCategory } from '../data/catalog'
+import { fetchCategories, fetchByCategory } from '../data/catalog'
 
 export default function Category() {
   const { slug } = useParams()
-  const cat = categories.find((c) => c.slug === slug)
-  const items = byCategory(slug)
+  const [cat, setCat] = useState(null)
+  const [items, setItems] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let live = true
+    setLoading(true)
+    setCat(null)
+    setItems(null)
+    Promise.all([fetchCategories(), fetchByCategory(slug)]).then(([cats, prods]) => {
+      if (!live) return
+      setCat(cats.find((c) => c.slug === slug) || null)
+      setItems(prods)
+      setLoading(false)
+    })
+    return () => {
+      live = false
+    }
+  }, [slug])
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-[1280px] px-6 py-section-sm">
+        <div className="h-6 w-40 animate-shimmer rounded-sm bg-[linear-gradient(90deg,#F1F5F9_25%,#E4EBF2_50%,#F1F5F9_75%)] bg-[length:200%_100%]" />
+      </div>
+    )
+  }
 
   if (!cat) {
     return (

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { banners, formatNaira, products } from '../data/catalog'
+import { banners, formatNaira, fetchProducts } from '../data/catalog'
 import { Arrow, ChevLeft, ChevRight } from './Icons'
 
 const DURATION = 4000
 
 export default function PromoSlider() {
   const [i, setI] = useState(0)
+  const [products, setProducts] = useState([])
   const [paused, setPaused] = useState(false)
   const [loaded, setLoaded] = useState({})
   const touchX = useRef(null)
@@ -14,6 +15,10 @@ export default function PromoSlider() {
   const go = useCallback((n) => setI((n + banners.length) % banners.length), [])
   const next = useCallback(() => go(i + 1), [i, go])
   const prev = useCallback(() => go(i - 1), [i, go])
+
+  useEffect(() => {
+    fetchProducts().then(setProducts)
+  }, [])
 
   /* preload every banner so slide changes never flash an empty box */
   useEffect(() => {

@@ -9,6 +9,8 @@ import Product from './pages/Product'
 import Checkout from './pages/Checkout'
 import Contact from './pages/Contact'
 import Category from './pages/Category'
+import Blog from './pages/Blog'
+import BlogPost from './pages/BlogPost'
 import BestValue from './pages/BestValue'
 import NewArrivals from './pages/NewArrivals'
 import TrackOrder from './pages/TrackOrder'
@@ -65,6 +67,8 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/category/:slug" element={<Category />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/best-value" element={<BestValue />} />
           <Route path="/new-arrivals" element={<NewArrivals />} />
           <Route path="/track-order" element={<TrackOrder />} />

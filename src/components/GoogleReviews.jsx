@@ -4,7 +4,7 @@ import { testimonials } from '../data/testimonials'
 import { Star, ChevLeft, ChevRight } from './Icons'
 
 const FALLBACK_MAPS_URL =
-  'https://maps.google.com/maps?vet=10CAAQoqAOahcKEwiYppSVrPWVAxUAAAAAHQAAAAAQEA..i&pvq=Cg0vZy8xMXl6OG1iamNxIhcKEXN1cGF2aWNlIHBoYXJtYWN5EAIYAw&lqi=ChFzdXBhdmljZSBwaGFybWFjeUj2gtWJ-b2AgAhaIxAAEAEYABgBIhFzdXBhdmljZSBwaGFybWFjeSoGCAIQABABkgEIcGhhcm1hY3k&fvr=1&cs=0&um=1&ie=UTF-8&fb=1&gl=ng&sa=X&ftid=0x103b97285a548eef:0x595158c21e2a5c5a'
+  'https://www.google.com/maps/place/Supavice+pharmacy+%26+stores/@6.6816787,3.2720243,17z/data=!4m8!3m7!1s0x103b97285a548eef:0x595158c21e2a5c5a!8m2!3d6.6816787!4d3.2720243!9m1!1b1!16s%2Fg%2F11yz8mbjcq?entry=ttu&g_ep=EgoyMDI2MDcyOS4wIKXMDSoASAFQAw%3D%3D'
 
 const GoogleG = (p) => (
   <svg viewBox="0 0 48 48" {...p}>

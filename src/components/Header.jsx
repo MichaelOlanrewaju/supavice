@@ -9,6 +9,7 @@ const nav = [
   { to: '/', label: 'Home' },
   { to: '/best-value', label: 'Best value' },
   { to: '/new-arrivals', label: 'New arrivals' },
+  { to: '/blog', label: 'Blog' },
   { to: '/prescription-orders', label: 'Prescriptions' },
   { to: '/delivery-returns', label: 'Delivery & returns' },
   { to: '/contact', label: 'Help' },

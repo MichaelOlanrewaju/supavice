@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PromoSlider from '../components/PromoSlider'
 import ProductCarousel from '../components/ProductCarousel'
@@ -7,17 +8,7 @@ import CategoryMosaic from '../components/CategoryMosaic'
 import ProductCard from '../components/ProductCard'
 import { SectionHead, Faq } from '../components/Bits'
 import { Truck, Check, Lock, Chat, Arrow } from '../components/Icons'
-import {
-  categories,
-  products,
-  brands,
-  byTag,
-  byCategory,
-  bestValue,
-  faqs,
-  formatNaira,
-  productImage,
-} from '../data/catalog'
+import { fetchProducts, fetchCategories, fetchBrands, faqs } from '../data/catalog'
 
 const perks = [
   { icon: Truck, title: 'Same-day in Lagos', body: 'Order before 16:00 for same-day dispatch.' },
@@ -26,22 +17,45 @@ const perks = [
   { icon: Chat, title: 'Free pharmacist advice', body: 'Ask before you buy, seven days a week.' },
 ]
 
-/* one branded, in-stock, real-photo product from a category */
-const pickFrom = (slug, n = 1, minPrice = 0) => {
-  const pool = products.filter(
-    (p) =>
-      p.category === slug &&
-      p.stock &&
-      p.price >= minPrice &&
-      !p.image.toLowerCase().includes('placeholder')
-  )
-  return n === 1 ? pool[0] : pool.slice(0, n)
-}
-
 export default function Home() {
-  const popular = byTag('popular', 14)
-  const fresh = byTag('new', 12)
-  const value = bestValue(14)
+  const [products, setProducts] = useState(null)
+  const [categories, setCategories] = useState(null)
+  const [brands, setBrands] = useState(null)
+
+  useEffect(() => {
+    Promise.all([fetchProducts(), fetchCategories(), fetchBrands()]).then(
+      ([p, c, b]) => {
+        setProducts(p)
+        setCategories(c)
+        setBrands(b)
+      }
+    )
+  }, [])
+
+  if (!products || !categories || !brands) {
+    return (
+      <div className="mx-auto max-w-[1280px] px-6 py-section">
+        <div className="grid gap-4">
+          <div className="aspect-[1280/689] animate-shimmer rounded-lg bg-[linear-gradient(90deg,#F1F5F9_25%,#E4EBF2_50%,#F1F5F9_75%)] bg-[length:200%_100%]" />
+          <div className="grid grid-cols-3 gap-4 sm:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="aspect-square animate-shimmer rounded-md bg-[linear-gradient(90deg,#F1F5F9_25%,#E4EBF2_50%,#F1F5F9_75%)] bg-[length:200%_100%]"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const popular = products.filter((p) => p.tags.includes('popular')).slice(0, 14)
+  const fresh = products.filter((p) => p.tags.includes('new')).slice(0, 12)
+  const value = [...products]
+    .filter((p) => p.stock && p.tags.includes('value'))
+    .sort((a, b) => a.price - b.price)
+    .slice(0, 14)
   const inStock = products.filter((p) => p.stock).length
 
   /* spotlight: a device, since they photograph well and carry the highest value */
@@ -72,10 +86,7 @@ export default function Home() {
   const heroSupp = suppPool[0]
   const suppPicks = suppPool.slice(1, 5)
 
-  /* mosaic: biggest category as the feature, next six as tiles */
-  // all categories now shown together in one uniform grid, no featured tile
-
-  const babyPicks = byCategory('mother-baby', 6)
+  const babyPicks = products.filter((p) => p.category === 'mother-baby').slice(0, 6)
 
   return (
     <>
@@ -199,7 +210,7 @@ export default function Home() {
           sub="From Nigerian manufacturers to imported specialist ranges."
         />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {brands.slice(0, 12).map((b) => (
+          {brands.filter((b) => b.name !== 'Supavice').slice(0, 12).map((b) => (
             <div
               key={b.name}
               className="grid place-items-center rounded-md border border-line bg-white px-4 py-6 text-center"

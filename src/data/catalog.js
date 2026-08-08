@@ -1,65 +1,160 @@
 /* ------------------------------------------------------------------
-   Catalogue — generated from a WooCommerce export.
+   Catalogue — live from Supabase.
 
-   Do not edit products.json by hand. Re-run:
-     python3 scripts/import-woo.py path/to/export.csv
+   Product data now comes straight from the database, so an edit or
+   delete in /admin shows up on the storefront without a rebuild. A
+   simple in-memory cache means only the first fetch per visit hits the
+   network; subsequent page views inside the same session reuse it.
+
+   If Supabase isn't configured (local dev without keys), everything
+   falls back to the last-known bundled snapshot in products.json so the
+   storefront still has something to show.
 ------------------------------------------------------------------- */
 
-import data from './products.json'
-
-export const products = data.products
-export const categories = data.categories
-export const brands = data.brands
-export const meta = data.meta
-
-/* Product images are hotlinked from the live WordPress store. Routing every
-   image through this one function means switching to locally hosted files
-   later is a single change here, not 900 edits. */
-export const productImage = (p) => p.image
+import { supabase } from '../lib/supabase'
+import fallbackData from './products.json'
 
 export const formatNaira = (n) => '\u20A6' + n.toLocaleString('en-NG')
 
-export const byTag = (tag, limit) => {
-  const out = products.filter((x) => x.tags.includes(tag))
-  return limit ? out.slice(0, limit) : out
-}
-
-export const byCategory = (slug, limit) => {
-  const out = products.filter((x) => x.category === slug)
-  return limit ? out.slice(0, limit) : out
-}
+export const productImage = (p) => p.image
 
 export const discountPct = (item) =>
   item.was ? Math.round(((item.was - item.price) / item.was) * 100) : 0
 
-export const categoryOf = (slug) => categories.find((c) => c.slug === slug)
+/* ---------- normalize a Supabase row to the same shape the UI expects ---------- */
+const fromRow = (r) => ({
+  id: r.id,
+  sku: r.sku,
+  name: r.name,
+  brand: r.brand,
+  price: r.price,
+  was: r.was,
+  category: r.category,
+  rawCategory: r.raw_category,
+  pom: r.pom,
+  stock: r.stock,
+  image: r.image,
+  pack: r.pack,
+  tags: r.tags || [],
+})
 
-export const findProduct = (id) => products.find((p) => p.id === id)
+/* ---------- cache ---------- */
+let productsCache = null
+let categoriesCache = null
+let inFlight = null
 
-/* Descriptions are ~250KB of prose only the product page needs, so they load
-   on demand rather than shipping with the initial bundle. */
-let descCache = null
-export const loadDescription = async (id) => {
-  if (!descCache) {
-    descCache = (await import('./descriptions.json')).default
-  }
-  return descCache[id] || []
+async function loadAll() {
+  if (productsCache && categoriesCache) return { products: productsCache, categories: categoriesCache }
+  if (inFlight) return inFlight
+
+  inFlight = (async () => {
+    if (!supabase) {
+      // No backend configured — use the bundled snapshot so the site still
+      // works in local dev without Supabase keys.
+      productsCache = fallbackData.products
+      categoriesCache = fallbackData.categories
+      return { products: productsCache, categories: categoriesCache }
+    }
+
+    try {
+      const [{ data: prodRows, error: prodErr }, { data: catRows, error: catErr }] = await Promise.all([
+        supabase.from('products').select('*').eq('active', true),
+        supabase.from('categories').select('*').order('sort_order'),
+      ])
+
+      if (prodErr || catErr) throw prodErr || catErr
+
+      productsCache = (prodRows || []).map(fromRow)
+      categoriesCache = (catRows || []).map((c) => ({
+        slug: c.slug,
+        name: c.name,
+        image: c.image,
+        count: productsCache.filter((p) => p.category === c.slug).length,
+      }))
+    } catch (e) {
+      console.error('[catalog] live fetch failed, falling back to bundled snapshot:', e.message)
+      productsCache = fallbackData.products
+      categoriesCache = fallbackData.categories
+    }
+
+    return { products: productsCache, categories: categoriesCache }
+  })()
+
+  const result = await inFlight
+  inFlight = null
+  return result
 }
 
-export const relatedTo = (p, limit = 6) =>
-  products
-    .filter((x) => x.category === p.category && x.id !== p.id && x.stock)
-    .slice(0, limit)
+/* Call this after an admin action if you want the very next page load in
+   this tab to refetch instead of reusing the cache. Not required for a
+   normal visit — a fresh page load always gets current data anyway. */
+export const invalidateCatalogCache = () => {
+  productsCache = null
+  categoriesCache = null
+}
 
-/* Cheapest genuine picks in a category — used where a "deals" row would
-   otherwise sit, since the export carries no sale prices. */
-export const bestValue = (limit = 12) =>
-  [...products]
+export const fetchProducts = async () => (await loadAll()).products
+
+export const fetchCategories = async () => (await loadAll()).categories
+
+export const fetchBrands = async () => {
+  const { products } = await loadAll()
+  const counts = new Map()
+  for (const p of products) {
+    if (!p.brand) continue
+    counts.set(p.brand, (counts.get(p.brand) || 0) + 1)
+  }
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+}
+
+export const fetchProduct = async (id) => {
+  const { products } = await loadAll()
+  return products.find((p) => p.id === id) || null
+}
+
+export const fetchByTag = async (tag, limit) => {
+  const { products } = await loadAll()
+  const out = products.filter((x) => x.tags.includes(tag))
+  return limit ? out.slice(0, limit) : out
+}
+
+export const fetchByCategory = async (slug, limit) => {
+  const { products } = await loadAll()
+  const out = products.filter((x) => x.category === slug)
+  return limit ? out.slice(0, limit) : out
+}
+
+export const fetchBestValue = async (limit = 12) => {
+  const { products } = await loadAll()
+  return [...products]
     .filter((p) => p.stock && p.tags.includes('value'))
     .sort((a, b) => a.price - b.price)
     .slice(0, limit)
+}
 
-/* ---------- hero banners ---------- */
+export const fetchRelated = async (product, limit = 6) => {
+  const { products } = await loadAll()
+  return products
+    .filter((x) => x.category === product.category && x.id !== product.id && x.stock)
+    .slice(0, limit)
+}
+
+/* Descriptions still come from Supabase directly on the product row now
+   (see `description text[]` in the schema) — kept as a function for the
+   same call shape the Product page already uses. */
+export const loadDescription = async (id) => {
+  if (!supabase) {
+    const desc = (await import('./descriptions.json')).default
+    return desc[id] || []
+  }
+  const { data, error } = await supabase.from('products').select('description').eq('id', id).maybeSingle()
+  if (error || !data) return []
+  return data.description || []
+}
+
+/* ---------- hero banners (editorial content, not product data — stays static) ---------- */
 export const banners = [
   {
     id: 'kids-vitamins',
@@ -102,7 +197,7 @@ export const banners = [
   },
 ]
 
-/* ---------- FAQs ---------- */
+/* ---------- FAQs (editorial content, stays static) ---------- */
 export const faqs = [
   {
     q: 'How long does delivery take?',
@@ -129,4 +224,3 @@ export const faqs = [
     a: 'Yes, to all 36 states, typically 2 to 4 working days. Cold-chain items are restricted to states we can reach within 24 hours; the product page tells you before you order.',
   },
 ]
-
