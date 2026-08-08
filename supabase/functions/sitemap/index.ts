@@ -25,6 +25,7 @@ const STATIC_PAGES = [
   { path: '/best-value', priority: '0.8', freq: 'daily' },
   { path: '/new-arrivals', priority: '0.8', freq: 'daily' },
   { path: '/blog', priority: '0.7', freq: 'daily' },
+  { path: '/track-order', priority: '0.4', freq: 'monthly' },
   { path: '/contact', priority: '0.5', freq: 'monthly' },
   { path: '/delivery-returns', priority: '0.4', freq: 'monthly' },
   { path: '/prescription-orders', priority: '0.5', freq: 'monthly' },
